@@ -4,6 +4,33 @@
   "include": [],
   "references": [
     {
+      "path": "../aw-tool-sign-ecdsa"
+    },
+    {
+      "path": "../aw-tool-uniswap-swap"
+    },
+    {
+      "path": "../aw-tool-erc20-transfer"
+    },
+    {
+      "path": "../aw-tool-registry"
+    },
+    {
+      "path": "../aw-tool"
+    },
+    {
+      "path": "../aw-signer"
+    },
+    {
+      "path": "../aw-subagent-openai"
+    },
+    {
+      "path": "../agent-wallet"
+    },
+    {
+      "path": "../.."
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {
