@@ -10,6 +10,7 @@ import {
   handleEditRpc,
   handleMainMenu,
   handleManageRpcsMenu,
+  handleRemoveRpc,
   MainMenuChoice,
   ManageRpcsMenuChoice,
 } from './main-menu';
@@ -36,6 +37,13 @@ export class LawCli {
   }
 
   private static populateDefaultRpcs(localStorage: LocalStorage) {
+    // Check if RPCs already exist
+    const existingRpcsString = localStorage.getItem(StorageKeys.RPCS);
+    if (existingRpcsString) {
+      return; // RPCs already exist, don't overwrite them
+    }
+
+    // Only populate default RPCs if none exist
     const sortedChains = Object.fromEntries(
       Object.entries(LIT_CHAINS).sort(([, a], [, b]) =>
         a.name.localeCompare(b.name)
@@ -102,6 +110,10 @@ export class LawCli {
         await LawCli.handleManageRpcsMenu(lawCli);
         break;
       case ManageRpcsMenuChoice.RemoveRpc:
+        await handleRemoveRpc(lawCli.localStorage);
+
+        // Return to the manage RPCs menu after
+        await LawCli.handleManageRpcsMenu(lawCli);
         break;
       case ManageRpcsMenuChoice.Back:
         await LawCli.handleCliSettingsMenu(lawCli);

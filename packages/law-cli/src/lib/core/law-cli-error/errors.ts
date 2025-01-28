@@ -35,6 +35,11 @@ export enum EditRpcErrors {
   NO_RPCS_FOUND = 'NO_RPCS_FOUND',
 }
 
+export enum RemoveRpcErrors {
+  REMOVE_RPC_CANCELLED = 'REMOVE_RPC_CANCELLED',
+  NO_RPCS_FOUND = 'NO_RPCS_FOUND',
+}
+
 // Combined type for all errors
 export type LawCliErrorType =
   | GetLitNetworkErrors
@@ -44,4 +49,5 @@ export type LawCliErrorType =
   | ChangeLitNetworkErrors
   | ManageRpcsMenuErrors
   | AddRpcErrors
-  | EditRpcErrors;
+  | EditRpcErrors
+  | RemoveRpcErrors;
