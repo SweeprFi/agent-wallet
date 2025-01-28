@@ -7,6 +7,7 @@ import {
   handleAddRpc,
   handleChangeLitNetwork,
   handleCliSettingsMenu,
+  handleEditRpc,
   handleMainMenu,
   handleManageRpcsMenu,
   MainMenuChoice,
@@ -95,6 +96,10 @@ export class LawCli {
         await LawCli.handleManageRpcsMenu(lawCli);
         break;
       case ManageRpcsMenuChoice.EditRpc:
+        await handleEditRpc(lawCli.localStorage);
+
+        // Return to the manage RPCs menu after
+        await LawCli.handleManageRpcsMenu(lawCli);
         break;
       case ManageRpcsMenuChoice.RemoveRpc:
         break;
