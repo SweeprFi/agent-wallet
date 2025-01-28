@@ -2,6 +2,7 @@ import { LocalStorage as NodeLocalStorage } from 'node-localstorage';
 
 export enum StorageKeys {
   LIT_NETWORK = 'litNetwork',
+  RPCS = 'rpcs',
 }
 
 export class LocalStorage {

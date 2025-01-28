@@ -4,7 +4,7 @@ import { CliSettingsMenuErrors, LawCliError, logger } from '../../core';
 
 export enum CliSettingsMenuChoice {
   ChangeLitNetwork = 'changeLitNetwork',
-  ConfigureRpcs = 'configureRpcs',
+  ManageRpcs = 'manageRpcs',
   Back = 'back',
 }
 
@@ -18,7 +18,7 @@ const promptCliSettingsMenu = async (): Promise<CliSettingsMenuChoice> => {
         title: 'Change Lit Network',
         value: CliSettingsMenuChoice.ChangeLitNetwork,
       },
-      { title: 'Configure RPCs', value: CliSettingsMenuChoice.ConfigureRpcs },
+      { title: 'Manage RPCs', value: CliSettingsMenuChoice.ManageRpcs },
       { title: 'Back', value: CliSettingsMenuChoice.Back },
     ],
   });

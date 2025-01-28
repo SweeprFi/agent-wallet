@@ -1,5 +1,6 @@
 export enum GeneralErrors {
   UNKNOWN_LAW_CLI_ERROR = 'UNKNOWN_LAW_CLI_ERROR',
+  NO_ACTION_SELECTED = 'NO_ACTION_SELECTED',
 }
 
 export enum GetLitNetworkErrors {
@@ -20,10 +21,21 @@ export enum ChangeLitNetworkErrors {
   NO_LIT_NETWORK_SELECTED = 'NO_LIT_NETWORK_SELECTED',
 }
 
+export enum ManageRpcsMenuErrors {
+  UNKNOWN_RPC_ACTION = 'UNKNOWN_RPC_ACTION',
+}
+
+export enum AddRpcErrors {
+  CHAIN_NAME_EXISTS = 'CHAIN_NAME_EXISTS',
+  ADD_RPC_CANCELLED = 'ADD_RPC_CANCELLED',
+}
+
 // Combined type for all errors
 export type LawCliErrorType =
   | GetLitNetworkErrors
   | GeneralErrors
   | MainMenuErrors
   | CliSettingsMenuErrors
-  | ChangeLitNetworkErrors;
+  | ChangeLitNetworkErrors
+  | ManageRpcsMenuErrors
+  | AddRpcErrors;
