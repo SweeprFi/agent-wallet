@@ -43,6 +43,14 @@ export enum RemoveRpcErrors {
 export enum AdminErrors {
   ADMIN_MISSING_PRIVATE_KEY = 'ADMIN_MISSING_PRIVATE_KEY',
   FAILED_TO_INITIALIZE_ADMIN = 'FAILED_TO_INITIALIZE_ADMIN',
+  NO_PKPS_FOUND = 'NO_PKPS_FOUND',
+  PKP_SELECTION_CANCELLED = 'PKP_SELECTION_CANCELLED',
+}
+
+export enum PermitToolErrors {
+  PERMIT_TOOL_CANCELLED = 'PERMIT_TOOL_CANCELLED',
+  NO_UNPERMITTED_TOOLS = 'NO_UNPERMITTED_TOOLS',
+  ENABLE_TOOL_CANCELLED = 'ENABLE_TOOL_CANCELLED',
 }
 
 // Combined type for all errors
@@ -56,4 +64,5 @@ export type LawCliErrorType =
   | AddRpcErrors
   | EditRpcErrors
   | RemoveRpcErrors
-  | AdminErrors;
+  | AdminErrors
+  | PermitToolErrors;

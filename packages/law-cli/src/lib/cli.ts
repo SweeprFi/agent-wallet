@@ -1,7 +1,14 @@
 import { LitNetwork } from '@lit-protocol/agent-wallet';
 import { LIT_CHAINS } from '@lit-protocol/constants';
 
-import { getLitNetwork, LocalStorage, logger, StorageKeys } from './core';
+import {
+  AdminErrors,
+  getLitNetwork,
+  LawCliError,
+  LocalStorage,
+  logger,
+  StorageKeys,
+} from './core';
 import {
   CliSettingsMenuChoice,
   handleAddRpc,
@@ -21,6 +28,10 @@ import {
   ConfigureSignerMenuChoice,
   handleUseEoa,
   Admin,
+  ManageToolsMenuChoice,
+  handleManageToolsMenu,
+  handleSelectPkp,
+  handlePermitTool,
 } from './main-menu';
 
 export class LawCli {
@@ -151,6 +162,7 @@ export class LawCli {
         await LawCli.handleAdminSettingsMenu(lawCli, admin);
         break;
       case AdminMenuChoice.ManageTools:
+        await LawCli.handleManageToolsMenu(lawCli, admin!);
         break;
       case AdminMenuChoice.ManagePolicies:
         break;
@@ -195,6 +207,45 @@ export class LawCli {
       case ConfigureSignerMenuChoice.Back:
         await LawCli.handleAdminSettingsMenu(lawCli, admin);
         break;
+    }
+  }
+
+  private static async handleManageToolsMenu(lawCli: LawCli, admin: Admin) {
+    const pkp = await LawCli.handleSelectPkp(lawCli, admin);
+
+    const option = await handleManageToolsMenu();
+
+    switch (option) {
+      case ManageToolsMenuChoice.PermitTool:
+        await handlePermitTool(admin, pkp);
+        break;
+      case ManageToolsMenuChoice.RemoveTool:
+        break;
+      case ManageToolsMenuChoice.EnableTool:
+        break;
+      case ManageToolsMenuChoice.DisableTool:
+        break;
+      case ManageToolsMenuChoice.GetRegisteredTools:
+        break;
+      case ManageToolsMenuChoice.Back:
+        await LawCli.handleAdminMenu(lawCli, admin);
+        break;
+    }
+  }
+
+  private static async handleSelectPkp(lawCli: LawCli, admin: Admin) {
+    try {
+      return await handleSelectPkp(admin);
+    } catch (error) {
+      if (error instanceof LawCliError) {
+        if (
+          error.type === AdminErrors.NO_PKPS_FOUND ||
+          error.type === AdminErrors.PKP_SELECTION_CANCELLED
+        ) {
+          await LawCli.handleAdminMenu(lawCli, admin);
+        }
+      }
+      throw error;
     }
   }
 

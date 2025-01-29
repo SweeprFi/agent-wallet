@@ -66,7 +66,7 @@ export const handleAdminMenu = async (
     if (error instanceof LawCliError) {
       if (error.type === GeneralErrors.NO_ACTION_SELECTED) {
         logger.error(error.message);
-        return await handleAdminMenu();
+        return await handleAdminMenu(admin);
       }
     }
     throw error;
