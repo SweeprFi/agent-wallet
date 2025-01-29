@@ -38,7 +38,7 @@ if (existsSync(ipfsPath)) {
   deployedCids = ipfsJson;
 } else {
   throw new Error(
-    'Failed to read ipfs.json. You should only see this error if you are running the monorepo locally. You should run npx nx deploy:lit-action to update the ipfs.json files.'
+    'Failed to read ipfs.json. You should only see this error if you are running the monorepo locally. You should run pnpm deploy:tools to update the ipfs.json files.'
   );
 }
 

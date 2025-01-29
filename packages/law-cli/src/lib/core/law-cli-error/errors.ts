@@ -40,6 +40,11 @@ export enum RemoveRpcErrors {
   NO_RPCS_FOUND = 'NO_RPCS_FOUND',
 }
 
+export enum AdminErrors {
+  ADMIN_MISSING_PRIVATE_KEY = 'ADMIN_MISSING_PRIVATE_KEY',
+  FAILED_TO_INITIALIZE_ADMIN = 'FAILED_TO_INITIALIZE_ADMIN',
+}
+
 // Combined type for all errors
 export type LawCliErrorType =
   | GetLitNetworkErrors
@@ -50,4 +55,5 @@ export type LawCliErrorType =
   | ManageRpcsMenuErrors
   | AddRpcErrors
   | EditRpcErrors
-  | RemoveRpcErrors;
+  | RemoveRpcErrors
+  | AdminErrors;

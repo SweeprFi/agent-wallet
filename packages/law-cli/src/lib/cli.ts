@@ -13,6 +13,14 @@ import {
   handleRemoveRpc,
   MainMenuChoice,
   ManageRpcsMenuChoice,
+  AdminMenuChoice,
+  handleAdminMenu,
+  handleAdminSettingsMenu,
+  AdminSettingsMenuChoice,
+  handleConfigureSignerMenu,
+  ConfigureSignerMenuChoice,
+  handleUseEoa,
+  Admin,
 } from './main-menu';
 
 export class LawCli {
@@ -52,19 +60,12 @@ export class LawCli {
     localStorage.setItem(StorageKeys.RPCS, JSON.stringify(sortedChains));
   }
 
-  public static async start() {
-    const localStorage = LawCli.initStorage();
-    const litNetwork = await getLitNetwork(localStorage);
-    const lawCli = new LawCli(localStorage, litNetwork);
-
-    await LawCli.showMainMenu(lawCli);
-  }
-
-  public static async showMainMenu(lawCli: LawCli) {
+  private static async showMainMenu(lawCli: LawCli, admin?: Admin) {
     const option = await handleMainMenu();
 
     switch (option) {
       case MainMenuChoice.AdminMenu:
+        await LawCli.handleAdminMenu(lawCli, admin);
         break;
       case MainMenuChoice.DelegateeMenu:
         break;
@@ -72,9 +73,17 @@ export class LawCli {
         await LawCli.handleCliSettingsMenu(lawCli);
         break;
     }
+
+    // If we reach this point, that means the user has exited the CLI,
+    // or one of the CLI options didn't loop back to a menu.
+    if (admin !== undefined) {
+      admin.awAdmin.disconnect();
+    }
+
+    process.exit(0);
   }
 
-  public static async handleCliSettingsMenu(lawCli: LawCli) {
+  private static async handleCliSettingsMenu(lawCli: LawCli) {
     const cliSettingsOption = await handleCliSettingsMenu();
 
     switch (cliSettingsOption) {
@@ -93,7 +102,7 @@ export class LawCli {
     }
   }
 
-  public static async handleManageRpcsMenu(lawCli: LawCli) {
+  private static async handleManageRpcsMenu(lawCli: LawCli) {
     const manageRpcsOption = await handleManageRpcsMenu();
 
     switch (manageRpcsOption) {
@@ -119,5 +128,81 @@ export class LawCli {
         await LawCli.handleCliSettingsMenu(lawCli);
         break;
     }
+  }
+
+  private static async handleAdminMenu(lawCli: LawCli, admin?: Admin) {
+    // If an instance of Admin is not provided, prompt the user to configure an Admin signer
+    if (admin === undefined) {
+      const adminPrivateKey = lawCli.localStorage.getItem(
+        StorageKeys.ADMIN_PRIVATE_KEY
+      );
+
+      if (adminPrivateKey) {
+        admin = await Admin.create(lawCli.litNetwork, adminPrivateKey);
+      } else {
+        await LawCli.handleAdminConfigureSignerMenu(lawCli);
+      }
+    }
+
+    const option = await handleAdminMenu(admin);
+
+    switch (option) {
+      case AdminMenuChoice.AdminSettings:
+        await LawCli.handleAdminSettingsMenu(lawCli, admin);
+        break;
+      case AdminMenuChoice.ManageTools:
+        break;
+      case AdminMenuChoice.ManagePolicies:
+        break;
+      case AdminMenuChoice.ManageDelegatees:
+        break;
+      case AdminMenuChoice.Back:
+        await LawCli.showMainMenu(lawCli, admin);
+        break;
+    }
+  }
+
+  private static async handleAdminSettingsMenu(lawCli: LawCli, admin?: Admin) {
+    const option = await handleAdminSettingsMenu();
+
+    switch (option) {
+      case AdminSettingsMenuChoice.ConfigureSigner: {
+        await LawCli.handleAdminConfigureSignerMenu(lawCli, admin);
+        break;
+      }
+      case AdminSettingsMenuChoice.Back:
+        await LawCli.handleAdminMenu(lawCli, admin);
+        break;
+    }
+  }
+
+  private static async handleAdminConfigureSignerMenu(
+    lawCli: LawCli,
+    admin?: Admin
+  ) {
+    const signerOption = await handleConfigureSignerMenu();
+
+    switch (signerOption) {
+      case ConfigureSignerMenuChoice.UseEoa: {
+        const admin = await handleUseEoa(lawCli.localStorage);
+        await LawCli.handleAdminMenu(lawCli, admin);
+        break;
+      }
+      case ConfigureSignerMenuChoice.UseMultiSig:
+        break;
+      case ConfigureSignerMenuChoice.UsePkp:
+        break;
+      case ConfigureSignerMenuChoice.Back:
+        await LawCli.handleAdminSettingsMenu(lawCli, admin);
+        break;
+    }
+  }
+
+  public static async start() {
+    const localStorage = LawCli.initStorage();
+    const litNetwork = await getLitNetwork(localStorage);
+    const lawCli = new LawCli(localStorage, litNetwork);
+
+    await LawCli.showMainMenu(lawCli);
   }
 }

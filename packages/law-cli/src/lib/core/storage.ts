@@ -3,6 +3,8 @@ import { LocalStorage as NodeLocalStorage } from 'node-localstorage';
 export enum StorageKeys {
   LIT_NETWORK = 'litNetwork',
   RPCS = 'rpcs',
+  ADMIN_PRIVATE_KEY = 'adminPrivateKey',
+  ADMIN_SIGNER_TYPE = 'adminSignerType',
 }
 
 export class LocalStorage {
