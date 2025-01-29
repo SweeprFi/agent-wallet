@@ -638,10 +638,15 @@ function updateDeployToolsScript() {
   const rootPackageJson = JSON.parse(readFileSync(rootPackageJsonPath, 'utf8'));
 
   if (!rootPackageJson.scripts['deploy:tools'].includes(packageName)) {
-    rootPackageJson.scripts['deploy:tools'] = rootPackageJson.scripts['deploy:tools'].replace(
-      /(".*?)"/,
-      `$1 && npx nx deploy ${packageName}"`
-    );
+    // Split existing tools into array
+    const currentScript = rootPackageJson.scripts['deploy:tools'];
+    const tools = currentScript.split('&&').map(cmd => cmd.trim());
+    
+    // Add new tool
+    tools.push(`npx nx deploy ${packageName}`);
+    
+    // Join back together
+    rootPackageJson.scripts['deploy:tools'] = tools.join(' && ');
 
     writeFileSync(rootPackageJsonPath, JSON.stringify(rootPackageJson, null, 2) + '\n');
     console.log(`✨ Added ${packageName} to deploy:tools script`);
