@@ -15,10 +15,10 @@ const promptMainMenu = async (): Promise<MainMenuChoice> => {
     message: 'What would you like to do?',
     choices: [
       {
-        title: 'Open Admin Menu',
+        title: 'Admin Menu',
         value: MainMenuChoice.AdminMenu,
       },
-      { title: 'Open Delegatee Menu', value: MainMenuChoice.DelegateeMenu },
+      { title: 'Delegatee Menu', value: MainMenuChoice.DelegateeMenu },
       { title: 'Change CLI Settings', value: MainMenuChoice.CliSettings },
     ],
   });

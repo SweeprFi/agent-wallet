@@ -53,6 +53,21 @@ export enum PermitToolErrors {
   ENABLE_TOOL_CANCELLED = 'ENABLE_TOOL_CANCELLED',
 }
 
+export enum RemoveToolErrors {
+  REMOVE_TOOL_CANCELLED = 'REMOVE_TOOL_CANCELLED',
+  NO_PERMITTED_TOOLS = 'NO_PERMITTED_TOOLS',
+}
+
+export enum EnableToolErrors {
+  ENABLE_TOOL_CANCELLED = 'ENABLE_TOOL_CANCELLED',
+  NO_DISABLED_TOOLS = 'NO_DISABLED_TOOLS',
+}
+
+export enum DisableToolErrors {
+  DISABLE_TOOL_CANCELLED = 'DISABLE_TOOL_CANCELLED',
+  NO_ENABLED_TOOLS = 'NO_ENABLED_TOOLS',
+}
+
 // Combined type for all errors
 export type LawCliErrorType =
   | GetLitNetworkErrors
@@ -65,4 +80,7 @@ export type LawCliErrorType =
   | EditRpcErrors
   | RemoveRpcErrors
   | AdminErrors
-  | PermitToolErrors;
+  | PermitToolErrors
+  | RemoveToolErrors
+  | EnableToolErrors
+  | DisableToolErrors;

@@ -18,6 +18,10 @@ const promptManageToolsMenu = async (): Promise<ManageToolsMenuChoice> => {
     message: 'What would you like to do?',
     choices: [
       {
+        title: 'Get Registered Tools',
+        value: ManageToolsMenuChoice.GetRegisteredTools,
+      },
+      {
         title: 'Permit Tool',
         value: ManageToolsMenuChoice.PermitTool,
       },
@@ -32,10 +36,6 @@ const promptManageToolsMenu = async (): Promise<ManageToolsMenuChoice> => {
       {
         title: 'Disable Tool',
         value: ManageToolsMenuChoice.DisableTool,
-      },
-      {
-        title: 'Get Registered Tools',
-        value: ManageToolsMenuChoice.GetRegisteredTools,
       },
       { title: 'Back', value: ManageToolsMenuChoice.Back },
     ],

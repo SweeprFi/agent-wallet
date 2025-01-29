@@ -1,4 +1,4 @@
-import { LitNetwork } from '@lit-protocol/agent-wallet';
+import { LitNetwork, type PkpInfo } from '@lit-protocol/agent-wallet';
 import { LIT_CHAINS } from '@lit-protocol/constants';
 
 import {
@@ -32,6 +32,10 @@ import {
   handleManageToolsMenu,
   handleSelectPkp,
   handlePermitTool,
+  handleRemoveTool,
+  handleEnableTool,
+  handleDisableTool,
+  handleGetTools,
 } from './main-menu';
 
 export class LawCli {
@@ -141,7 +145,11 @@ export class LawCli {
     }
   }
 
-  private static async handleAdminMenu(lawCli: LawCli, admin?: Admin) {
+  private static async handleAdminMenu(
+    lawCli: LawCli,
+    admin?: Admin,
+    pkp?: PkpInfo
+  ) {
     // If an instance of Admin is not provided, prompt the user to configure an Admin signer
     if (admin === undefined) {
       const adminPrivateKey = lawCli.localStorage.getItem(
@@ -151,6 +159,7 @@ export class LawCli {
       if (adminPrivateKey) {
         admin = await Admin.create(lawCli.litNetwork, adminPrivateKey);
       } else {
+        // Recursively calls handleAdminMenu, passing in the new Admin instance
         await LawCli.handleAdminConfigureSignerMenu(lawCli);
       }
     }
@@ -162,7 +171,10 @@ export class LawCli {
         await LawCli.handleAdminSettingsMenu(lawCli, admin);
         break;
       case AdminMenuChoice.ManageTools:
-        await LawCli.handleManageToolsMenu(lawCli, admin!);
+        if (pkp === undefined) {
+          pkp = await LawCli.handleSelectPkp(lawCli, admin!);
+        }
+        await LawCli.handleManageToolsMenu(lawCli, admin!, pkp);
         break;
       case AdminMenuChoice.ManagePolicies:
         break;
@@ -210,25 +222,36 @@ export class LawCli {
     }
   }
 
-  private static async handleManageToolsMenu(lawCli: LawCli, admin: Admin) {
-    const pkp = await LawCli.handleSelectPkp(lawCli, admin);
-
+  private static async handleManageToolsMenu(
+    lawCli: LawCli,
+    admin: Admin,
+    pkp: PkpInfo
+  ) {
     const option = await handleManageToolsMenu();
 
     switch (option) {
+      case ManageToolsMenuChoice.GetRegisteredTools:
+        await handleGetTools(admin, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
+        break;
       case ManageToolsMenuChoice.PermitTool:
         await handlePermitTool(admin, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
         break;
       case ManageToolsMenuChoice.RemoveTool:
+        await handleRemoveTool(admin, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
         break;
       case ManageToolsMenuChoice.EnableTool:
+        await handleEnableTool(admin, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
         break;
       case ManageToolsMenuChoice.DisableTool:
-        break;
-      case ManageToolsMenuChoice.GetRegisteredTools:
+        await handleDisableTool(admin, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
         break;
       case ManageToolsMenuChoice.Back:
-        await LawCli.handleAdminMenu(lawCli, admin);
+        await LawCli.handleAdminMenu(lawCli, admin, pkp);
         break;
     }
   }

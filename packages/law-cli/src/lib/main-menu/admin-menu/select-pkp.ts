@@ -19,7 +19,8 @@ const promptSelectPkp = async (admin: Admin) => {
     name: 'pkp',
     message: 'Select a PKP to manage:',
     choices: pkps.map((pkp, i) => ({
-      title: `${i + 1}: ${pkp.info.ethAddress} (${pkp.info.tokenId})`,
+      title: `${i + 1}: ${pkp.info.ethAddress}`,
+      description: `Token ID: ${pkp.info.tokenId}`,
       value: pkp,
     })),
   });
