@@ -130,6 +130,29 @@ export enum UnpermitToolForDelegateeErrors {
   UNPERMIT_TOOL_FOR_DELEGATEE_CANCELLED = 'UNPERMIT_TOOL_FOR_DELEGATEE_CANCELLED',
 }
 
+export enum GetToolPolicyParameterErrors {
+  NO_TOOLS_WITH_POLICIES = 'NO_TOOLS_WITH_POLICIES',
+  NO_DELEGATEES = 'NO_DELEGATEES',
+  NO_PARAMETERS = 'NO_PARAMETERS',
+  GET_CANCELLED = 'GET_CANCELLED',
+}
+
+export enum SetToolPolicyParameterErrors {
+  NO_TOOLS_WITH_POLICIES = 'NO_TOOLS_WITH_POLICIES',
+  NO_DELEGATEES = 'NO_DELEGATEES',
+  SET_CANCELLED = 'SET_CANCELLED',
+  PARAMETER_EXISTS = 'PARAMETER_EXISTS',
+  FAILED = 'FAILED',
+}
+
+export enum RemoveToolPolicyParameterErrors {
+  NO_TOOLS_WITH_POLICIES = 'NO_TOOLS_WITH_POLICIES',
+  NO_DELEGATEES = 'NO_DELEGATEES',
+  NO_PARAMETERS = 'NO_PARAMETERS',
+  REMOVE_CANCELLED = 'REMOVE_CANCELLED',
+  FAILED = 'FAILED',
+}
+
 // Combined type for all errors
 export type LawCliErrorType =
   | GetLitNetworkErrors
@@ -158,4 +181,7 @@ export type LawCliErrorType =
   | IsDelegateeErrors
   | ManageDelegateesMenuErrors
   | PermitToolForDelegateeErrors
-  | UnpermitToolForDelegateeErrors;
+  | UnpermitToolForDelegateeErrors
+  | GetToolPolicyParameterErrors
+  | SetToolPolicyParameterErrors
+  | RemoveToolPolicyParameterErrors;

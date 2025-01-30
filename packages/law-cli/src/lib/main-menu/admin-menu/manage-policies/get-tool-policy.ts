@@ -67,7 +67,7 @@ const displayToolPolicy = async (
 
   logger.info(`Policy details for tool ${tool.name}:`);
   logger.log(`  Tool IPFS CID: ${tool.ipfsCid}`);
-  //   logger.log(`    Status: ${tool.enabled ? 'Enabled' : 'Disabled'}`);
+  logger.log(`    Status: ${tool.toolEnabled ? 'Enabled' : 'Disabled'}`);
   logger.log(`  Delegatee: ${delegatee}`);
   logger.log(`  Policy IPFS CID: ${policy.policyIpfsCid}`);
   logger.log(`    Status: ${policy.policyEnabled ? 'Enabled' : 'Disabled'}`);

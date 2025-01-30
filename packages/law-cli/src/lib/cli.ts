@@ -52,6 +52,9 @@ import {
   ManageDelegateesMenuChoice,
   handlePermitToolForDelegatee,
   handleUnpermitToolForDelegatee,
+  handleGetToolPolicyParameter,
+  handleRemoveToolPolicyParameter,
+  handleSetToolPolicyParameter,
 } from './main-menu';
 
 export class LawCli {
@@ -326,6 +329,18 @@ export class LawCli {
         break;
       case ManagePoliciesMenuChoice.DisablePolicy:
         await handleDisablePolicy(admin, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        break;
+      case ManagePoliciesMenuChoice.GetPolicyParameter:
+        await handleGetToolPolicyParameter(admin, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        break;
+      case ManagePoliciesMenuChoice.SetPolicyParameter:
+        await handleSetToolPolicyParameter(admin, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        break;
+      case ManagePoliciesMenuChoice.RemovePolicyParameter:
+        await handleRemoveToolPolicyParameter(admin, pkp);
         await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
         break;
       case ManagePoliciesMenuChoice.Back:

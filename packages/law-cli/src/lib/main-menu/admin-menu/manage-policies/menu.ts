@@ -9,6 +9,9 @@ export enum ManagePoliciesMenuChoice {
   RemovePolicy = 'removePolicy',
   EnablePolicy = 'enablePolicy',
   DisablePolicy = 'disablePolicy',
+  GetPolicyParameter = 'getPolicyParameter',
+  SetPolicyParameter = 'setPolicyParameter',
+  RemovePolicyParameter = 'removePolicyParameter',
   Back = 'back',
 }
 
@@ -36,6 +39,18 @@ const choices = [
   {
     title: 'Disable Policy for a Delegatee',
     value: ManagePoliciesMenuChoice.DisablePolicy,
+  },
+  {
+    title: 'Get Policy Parameters for a Delegatee',
+    value: ManagePoliciesMenuChoice.GetPolicyParameter,
+  },
+  {
+    title: 'Set Policy Parameters for a Delegatee',
+    value: ManagePoliciesMenuChoice.SetPolicyParameter,
+  },
+  {
+    title: 'Remove Policy Parameters for a Delegatee',
+    value: ManagePoliciesMenuChoice.RemovePolicyParameter,
   },
   {
     title: 'Back',

@@ -5,3 +5,6 @@ export { handleSetPolicy } from './set-policy';
 export { handleRemovePolicy } from './remove-policy';
 export { handleEnablePolicy } from './enable-policy';
 export { handleDisablePolicy } from './disable-policy';
+export { handleGetToolPolicyParameter } from './get-tool-policy-parameter';
+export { handleSetToolPolicyParameter } from './set-tool-policy-parameter';
+export { handleRemoveToolPolicyParameter } from './remove-tool-policy-parameter';
