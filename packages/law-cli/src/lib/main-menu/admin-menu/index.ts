@@ -4,3 +4,4 @@ export { handleSelectPkp } from './select-pkp';
 
 export * from './admin-settings';
 export * from './manage-tools';
+export * from './manage-policies';

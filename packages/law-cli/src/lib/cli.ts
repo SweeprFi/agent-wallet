@@ -36,6 +36,14 @@ import {
   handleEnableTool,
   handleDisableTool,
   handleGetTools,
+  handleGetPolicies,
+  ManagePoliciesMenuChoice,
+  handleDisablePolicy,
+  handleEnablePolicy,
+  handleRemovePolicy,
+  handleSetPolicy,
+  handleManagePoliciesMenu,
+  handleGetToolPolicy,
 } from './main-menu';
 
 export class LawCli {
@@ -177,6 +185,10 @@ export class LawCli {
         await LawCli.handleManageToolsMenu(lawCli, admin!, pkp);
         break;
       case AdminMenuChoice.ManagePolicies:
+        if (pkp === undefined) {
+          pkp = await LawCli.handleSelectPkp(lawCli, admin!);
+        }
+        await LawCli.handleManagePoliciesMenu(lawCli, admin!, pkp);
         break;
       case AdminMenuChoice.ManageDelegatees:
         break;
@@ -251,6 +263,44 @@ export class LawCli {
         await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
         break;
       case ManageToolsMenuChoice.Back:
+        await LawCli.handleAdminMenu(lawCli, admin, pkp);
+        break;
+    }
+  }
+
+  private static async handleManagePoliciesMenu(
+    lawCli: LawCli,
+    admin: Admin,
+    pkp: PkpInfo
+  ) {
+    const option = await handleManagePoliciesMenu();
+
+    switch (option) {
+      case ManagePoliciesMenuChoice.GetAllPolicies:
+        await handleGetPolicies(admin, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        break;
+      case ManagePoliciesMenuChoice.GetToolPolicy:
+        await handleGetToolPolicy(admin, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        break;
+      case ManagePoliciesMenuChoice.SetPolicy:
+        await handleSetPolicy(admin, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        break;
+      case ManagePoliciesMenuChoice.RemovePolicy:
+        await handleRemovePolicy(admin, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        break;
+      case ManagePoliciesMenuChoice.EnablePolicy:
+        await handleEnablePolicy(admin, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        break;
+      case ManagePoliciesMenuChoice.DisablePolicy:
+        await handleDisablePolicy(admin, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        break;
+      case ManagePoliciesMenuChoice.Back:
         await LawCli.handleAdminMenu(lawCli, admin, pkp);
         break;
     }

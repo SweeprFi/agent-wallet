@@ -778,7 +778,7 @@ export class Admin {
    * @param ipfsCid - The IPFS CID of the tool.
    * @param delegatee - The address of the delegatee.
    * @param parameterNames - An array of policy parameter names.
-   * @returns A promise that resolves to an array of policy parameter values.
+   * @returns A promise that resolves to an array of tuples containing policy parameter names and values.
    * @throws If the tool policy registry contract is not initialized.
    */
   public async getToolPolicyParametersForDelegatee(
@@ -786,7 +786,7 @@ export class Admin {
     ipfsCid: string,
     delegatee: string,
     parameterNames: string[]
-  ) {
+  ): Promise<{ name: string; value: string }[]> {
     if (!this.toolRegistryContract) {
       throw new Error('Tool policy manager not initialized');
     }

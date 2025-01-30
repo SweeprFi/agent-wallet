@@ -68,6 +68,35 @@ export enum DisableToolErrors {
   NO_ENABLED_TOOLS = 'NO_ENABLED_TOOLS',
 }
 
+export enum ManagePoliciesMenuErrors {
+  NO_MANAGE_POLICIES_ACTION_SELECTED = 'NO_MANAGE_POLICIES_ACTION_SELECTED',
+}
+
+export enum SetPolicyErrors {
+  SET_POLICY_CANCELLED = 'SET_POLICY_CANCELLED',
+  NO_TOOLS_FOUND = 'NO_TOOLS_FOUND',
+}
+
+export enum RemovePolicyErrors {
+  REMOVE_POLICY_CANCELLED = 'REMOVE_POLICY_CANCELLED',
+  NO_POLICIES_FOUND = 'NO_POLICIES_FOUND',
+}
+
+export enum EnablePolicyErrors {
+  ENABLE_POLICY_CANCELLED = 'ENABLE_POLICY_CANCELLED',
+  NO_DISABLED_POLICIES = 'NO_DISABLED_POLICIES',
+}
+
+export enum DisablePolicyErrors {
+  DISABLE_POLICY_CANCELLED = 'DISABLE_POLICY_CANCELLED',
+  NO_ENABLED_POLICIES = 'NO_ENABLED_POLICIES',
+}
+
+export enum GetToolPolicyErrors {
+  GET_TOOL_POLICY_CANCELLED = 'GET_TOOL_POLICY_CANCELLED',
+  NO_TOOLS_WITH_POLICIES = 'NO_TOOLS_WITH_POLICIES',
+}
+
 // Combined type for all errors
 export type LawCliErrorType =
   | GetLitNetworkErrors
@@ -83,4 +112,10 @@ export type LawCliErrorType =
   | PermitToolErrors
   | RemoveToolErrors
   | EnableToolErrors
-  | DisableToolErrors;
+  | DisableToolErrors
+  | ManagePoliciesMenuErrors
+  | SetPolicyErrors
+  | RemovePolicyErrors
+  | EnablePolicyErrors
+  | DisablePolicyErrors
+  | GetToolPolicyErrors;
