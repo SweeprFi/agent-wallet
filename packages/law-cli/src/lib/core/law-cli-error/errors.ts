@@ -97,6 +97,39 @@ export enum GetToolPolicyErrors {
   NO_TOOLS_WITH_POLICIES = 'NO_TOOLS_WITH_POLICIES',
 }
 
+export enum GetDelegateesErrors {
+  NO_DELEGATEES_FOUND = 'NO_DELEGATEES_FOUND',
+}
+
+export enum AddDelegateeErrors {
+  ADD_DELEGATEE_CANCELLED = 'ADD_DELEGATEE_CANCELLED',
+}
+
+export enum RemoveDelegateeErrors {
+  REMOVE_DELEGATEE_CANCELLED = 'REMOVE_DELEGATEE_CANCELLED',
+  NO_DELEGATEES_FOUND = 'NO_DELEGATEES_FOUND',
+}
+
+export enum IsDelegateeErrors {
+  IS_DELEGATEE_CANCELLED = 'IS_DELEGATEE_CANCELLED',
+}
+
+export enum ManageDelegateesMenuErrors {
+  NO_MANAGE_DELEGATEES_ACTION_SELECTED = 'NO_MANAGE_DELEGATEES_ACTION_SELECTED',
+  UNKNOWN_MANAGE_DELEGATEES_ACTION = 'UNKNOWN_MANAGE_DELEGATEES_ACTION',
+}
+
+export enum PermitToolForDelegateeErrors {
+  NO_TOOLS_FOUND = 'NO_TOOLS_FOUND',
+  NO_DELEGATEES_FOUND = 'NO_DELEGATEES_FOUND',
+  PERMIT_TOOL_FOR_DELEGATEE_CANCELLED = 'PERMIT_TOOL_FOR_DELEGATEE_CANCELLED',
+}
+
+export enum UnpermitToolForDelegateeErrors {
+  NO_PERMITTED_TOOLS = 'NO_PERMITTED_TOOLS',
+  UNPERMIT_TOOL_FOR_DELEGATEE_CANCELLED = 'UNPERMIT_TOOL_FOR_DELEGATEE_CANCELLED',
+}
+
 // Combined type for all errors
 export type LawCliErrorType =
   | GetLitNetworkErrors
@@ -118,4 +151,11 @@ export type LawCliErrorType =
   | RemovePolicyErrors
   | EnablePolicyErrors
   | DisablePolicyErrors
-  | GetToolPolicyErrors;
+  | GetToolPolicyErrors
+  | GetDelegateesErrors
+  | AddDelegateeErrors
+  | RemoveDelegateeErrors
+  | IsDelegateeErrors
+  | ManageDelegateesMenuErrors
+  | PermitToolForDelegateeErrors
+  | UnpermitToolForDelegateeErrors;

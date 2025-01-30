@@ -44,6 +44,14 @@ import {
   handleSetPolicy,
   handleManagePoliciesMenu,
   handleGetToolPolicy,
+  handleManageDelegateesMenu,
+  handleIsDelegatee,
+  handleRemoveDelegatee,
+  handleAddDelegatee,
+  handleGetDelegatees,
+  ManageDelegateesMenuChoice,
+  handlePermitToolForDelegatee,
+  handleUnpermitToolForDelegatee,
 } from './main-menu';
 
 export class LawCli {
@@ -104,6 +112,22 @@ export class LawCli {
     }
 
     process.exit(0);
+  }
+
+  private static async handleSelectPkp(lawCli: LawCli, admin: Admin) {
+    try {
+      return await handleSelectPkp(admin);
+    } catch (error) {
+      if (error instanceof LawCliError) {
+        if (
+          error.type === AdminErrors.NO_PKPS_FOUND ||
+          error.type === AdminErrors.PKP_SELECTION_CANCELLED
+        ) {
+          await LawCli.handleAdminMenu(lawCli, admin);
+        }
+      }
+      throw error;
+    }
   }
 
   private static async handleCliSettingsMenu(lawCli: LawCli) {
@@ -191,6 +215,10 @@ export class LawCli {
         await LawCli.handleManagePoliciesMenu(lawCli, admin!, pkp);
         break;
       case AdminMenuChoice.ManageDelegatees:
+        if (pkp === undefined) {
+          pkp = await LawCli.handleSelectPkp(lawCli, admin!);
+        }
+        await LawCli.handleManageDelegateesMenu(lawCli, admin!, pkp);
         break;
       case AdminMenuChoice.Back:
         await LawCli.showMainMenu(lawCli, admin);
@@ -306,19 +334,41 @@ export class LawCli {
     }
   }
 
-  private static async handleSelectPkp(lawCli: LawCli, admin: Admin) {
-    try {
-      return await handleSelectPkp(admin);
-    } catch (error) {
-      if (error instanceof LawCliError) {
-        if (
-          error.type === AdminErrors.NO_PKPS_FOUND ||
-          error.type === AdminErrors.PKP_SELECTION_CANCELLED
-        ) {
-          await LawCli.handleAdminMenu(lawCli, admin);
-        }
-      }
-      throw error;
+  private static async handleManageDelegateesMenu(
+    lawCli: LawCli,
+    admin: Admin,
+    pkp: PkpInfo
+  ) {
+    const option = await handleManageDelegateesMenu();
+
+    switch (option) {
+      case ManageDelegateesMenuChoice.GetDelegatees:
+        await handleGetDelegatees(admin, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        break;
+      case ManageDelegateesMenuChoice.IsDelegatee:
+        await handleIsDelegatee(admin, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        break;
+      case ManageDelegateesMenuChoice.AddDelegatee:
+        await handleAddDelegatee(admin, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        break;
+      case ManageDelegateesMenuChoice.RemoveDelegatee:
+        await handleRemoveDelegatee(admin, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        break;
+      case ManageDelegateesMenuChoice.PermitTool:
+        await handlePermitToolForDelegatee(admin, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        break;
+      case ManageDelegateesMenuChoice.UnpermitTool:
+        await handleUnpermitToolForDelegatee(admin, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        break;
+      case ManageDelegateesMenuChoice.Back:
+        await LawCli.handleAdminMenu(lawCli, admin, pkp);
+        break;
     }
   }
 

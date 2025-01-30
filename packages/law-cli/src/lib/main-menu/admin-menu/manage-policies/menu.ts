@@ -14,7 +14,7 @@ export enum ManagePoliciesMenuChoice {
 
 const choices = [
   {
-    title: 'Get All Policies for a Tool',
+    title: 'Get All Tools and Policies for the Agent Wallet',
     value: ManagePoliciesMenuChoice.GetAllPolicies,
   },
   {

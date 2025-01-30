@@ -86,7 +86,7 @@ const displayToolPolicy = async (
       logger.info(`    ${key}: ${value}`);
     });
   } else {
-    logger.info('  No policy parameters set');
+    logger.log('  No policy parameters set');
   }
 };
 
