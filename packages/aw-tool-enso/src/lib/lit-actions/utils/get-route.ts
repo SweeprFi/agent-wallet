@@ -1,19 +1,35 @@
-import { EnsoClient } from '@ensofinance/sdk';
+import { EnsoClient, RouteParams } from '@ensofinance/sdk';
 import { ENSO_API_KEY } from '../../../constants';
+import { ethers } from 'ethers';
 
 /**
- * Retrieves the best quote for a Uniswap V3 swap.
- * @param {JsonRpcProvider} provider - The Ethereum provider.
+ * Retrieves the best route from tokenIn to tokenOut through Enso
+ * @param {EnsoClient} ensoClient - Enso API Client
+ * @param {number} chainId - ChainID of blockchain network
+ * @param {string} fromAddress - Address from whom the transaction will be executed
  * @param {string} tokenIn - The token to route away from
- * @param {any} amount - Amount of tokenIn
+ * @param {string} amountIn - Amount of tokenIn
  * @param {string} tokenOut - The token to route to
- * @returns {Promise<{ bestQuote: any, bestFee: number, amountOutMin: any }>} The best quote and fee tier.
+ * @returns {Promise<{bestQuote: any;bestFee: number;amountOutMin: any;}>} The best quote and fee tier.
  */
-export const getBestQuote = async (
-  provider: any,
+export const getRoute = async (
+  ensoClient: EnsoClient,
+  chainId: number,
+  fromAddress: string,
   tokenIn: string,
-  amount: string,
+  amountIn: string,
   tokenOut: string
 ) => {
-  const ensoClient = new EnsoClient({ apiKey: ENSO_API_KEY });
+  const routeParams: RouteParams = {
+    chainId,
+    tokenIn: tokenIn as `0x${string}`,
+    tokenOut: tokenOut as `0x${string}`,
+    amountIn: amountIn,
+    fromAddress: fromAddress as `0x${string}`,
+    receiver: fromAddress as `0x${string}`,
+    spender: fromAddress as `0x${string}`,
+  };
+
+  console.log('Fetching the best route through Enso...');
+  return await ensoClient.getRouterData(routeParams);
 };
