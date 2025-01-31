@@ -7,6 +7,7 @@ import {
 } from '@lit-protocol/agent-wallet';
 
 import { logger } from '../../core';
+import { promptDelegateeInsufficientBalance } from './insuffcient-balance';
 
 export class Delegatee {
   public awDelegatee: AwDelegatee;
@@ -51,10 +52,10 @@ export class Delegatee {
           AwSignerErrorType.INSUFFICIENT_BALANCE_CAPACITY_CREDIT_MINT
         ) {
           // Prompt the user to fund the account if the balance is insufficient.
-          //   const hasFunded = await promptDelegateeInsufficientBalance();
-          //   if (hasFunded) {
-          //     return Delegatee.createAwDelegatee(litNetwork, privateKey);
-          //   }
+          const hasFunded = await promptDelegateeInsufficientBalance();
+          if (hasFunded) {
+            return Delegatee.createAwDelegatee(litNetwork, privateKey);
+          }
         }
       }
 
