@@ -1,6 +1,4 @@
 import { EnsoClient, RouteParams } from '@ensofinance/sdk';
-import { ENSO_API_KEY } from '../../../constants';
-import { ethers } from 'ethers';
 
 /**
  * Retrieves the best route from tokenIn to tokenOut through Enso
@@ -31,5 +29,20 @@ export const getRoute = async (
   };
 
   console.log('Fetching the best route through Enso...');
-  return await ensoClient.getRouterData(routeParams);
+  const routeData = await ensoClient.getRouterData(routeParams);
+  return routeData;
+  //return {
+  //  ...routeData,
+  //  tx: {
+  //    to: routeData.tx.to,
+  //    data: routeData.tx.data,
+  //    value: routeData.tx.value,
+  //    gasLimit: routeData.gas,
+  //    maxFeePerGas: gasData.maxFeePerGas,
+  //    maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
+  //    nonce: gasData.nonce,
+  //    chainId: chainId.toString(),
+  //    type: 2,
+  //  },
+  //};
 };

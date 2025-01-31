@@ -4,11 +4,16 @@ import {
   getPkpToolRegistryContract,
   NETWORK_CONFIG,
 } from '@lit-protocol/aw-tool';
-import { ENSO_API_KEY, ENSO_SUPPORTED_CHAINS } from 'src/constants';
+import { ENSO_API_KEY, ENSO_ETH, ENSO_SUPPORTED_CHAINS } from 'src/constants';
 import { getToken } from './utils/get-token';
 import { EnsoClient } from '@ensofinance/sdk';
-import { formatUnits, parseUnits } from 'ethers/lib/utils';
+import { parseUnits } from 'ethers/lib/utils';
 import { getRoute } from './utils/get-route';
+import { createApproveTx } from './utils/approve';
+import { signTx } from './utils/sign-tx';
+import { broadcastTransaction } from './utils/broadcast-tx';
+import { getGasData } from './utils/get-gas-data';
+import { createRouteTx } from './utils/create-route-tx';
 
 declare global {
   // Required Inputs
@@ -98,24 +103,73 @@ declare global {
       params.tokenOut
     );
 
-    // TODO: What needs to be done:
-    // 1. Need to do approval if necessary
-    // 2. Do the routing
+    if (params.tokenIn.toLowerCase() !== ENSO_ETH) {
+      const gasData = await getGasData(provider, pkp.ethAddress);
+
+      const approveTx = await createApproveTx(
+        ensoClient,
+        chainId,
+        gasData,
+        pkp.ethAddress,
+        tokenInData.address,
+        amountInWei
+      );
+
+      const signedApprovalTx = await signTx(
+        pkp.publicKey,
+        approveTx,
+        'erc20ApprovalSig'
+      );
+
+      const approvalHash = await broadcastTransaction(
+        provider,
+        signedApprovalTx
+      );
+      console.log('Approval transaction hash:', approvalHash);
+
+      // Wait for approval confirmation
+      console.log('Waiting for approval confirmation...');
+      const approvalConfirmation = await provider.waitForTransaction(
+        approvalHash,
+        1
+      );
+
+      if (approvalConfirmation.status === 0) {
+        throw new Error('Approval transaction failed');
+      }
+    }
+
+    const gasData = await getGasData(provider, pkp.ethAddress);
+    const routeTx = createRouteTx(routeData, gasData, chainId);
+    const signedRouteTx = await signTx(pkp.publicKey, routeTx, 'erc20RouteSig');
+    const routeHash = await broadcastTransaction(provider, signedRouteTx);
+    console.log('Route transaction hash', routeHash);
 
     Lit.Actions.setResponse({
       response: JSON.stringify({
-        response: 'Success!',
+        routeHash,
         status: 'success',
       }),
     });
   } catch (err: any) {
     console.error('Error:', err);
+
+    // Extract detailed error information
+    const errorDetails = {
+      message: err.message,
+      code: err.code,
+      reason: err.reason,
+      error: err.error,
+      ...(err.transaction && { transaction: err.transaction }),
+      ...(err.receipt && { receipt: err.receipt }),
+    };
+
     Lit.Actions.setResponse({
       response: JSON.stringify({
         status: 'error',
         error: err.message || String(err),
+        details: errorDetails,
       }),
     });
   }
 })();
-
