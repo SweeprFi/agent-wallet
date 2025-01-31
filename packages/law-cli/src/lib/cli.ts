@@ -119,7 +119,11 @@ export class LawCli {
 
   private static async handleSelectPkp(lawCli: LawCli, admin: Admin) {
     try {
-      return await handleSelectPkp(admin);
+      const pkpOrNull = await handleSelectPkp(admin);
+      if (pkpOrNull === null) {
+        await LawCli.handleAdminMenu(lawCli, admin);
+      }
+      return pkpOrNull as PkpInfo;
     } catch (error) {
       if (error instanceof LawCliError) {
         if (
@@ -185,26 +189,30 @@ export class LawCli {
     admin?: Admin,
     pkp?: PkpInfo
   ) {
+    // TODO I don't think this is needed since options other than AdminSettings
+    // are not available if an Admin is not configured.
     // If an instance of Admin is not provided, prompt the user to configure an Admin signer
-    if (admin === undefined) {
-      const adminPrivateKey = lawCli.localStorage.getItem(
-        StorageKeys.ADMIN_PRIVATE_KEY
-      );
+    // if (admin === undefined) {
+    //   const adminPrivateKey = lawCli.localStorage.getItem(
+    //     StorageKeys.ADMIN_PRIVATE_KEY
+    //   );
 
-      if (adminPrivateKey) {
-        admin = await Admin.create(lawCli.litNetwork, adminPrivateKey);
-      } else {
-        // Recursively calls handleAdminMenu, passing in the new Admin instance
-        await LawCli.handleAdminConfigureSignerMenu(lawCli);
-      }
-    }
+    //   if (adminPrivateKey) {
+    //     admin = await Admin.create(lawCli.litNetwork, adminPrivateKey);
+    //   }
+    // }
 
-    const option = await handleAdminMenu(admin);
+    const option = await handleAdminMenu(admin, pkp);
 
     switch (option) {
       case AdminMenuChoice.AdminSettings:
         await LawCli.handleAdminSettingsMenu(lawCli, admin);
         break;
+      case AdminMenuChoice.SelectPkp: {
+        const selectedPkp = await LawCli.handleSelectPkp(lawCli, admin!);
+        await LawCli.handleAdminMenu(lawCli, admin, selectedPkp);
+        break;
+      }
       case AdminMenuChoice.ManageTools:
         if (pkp === undefined) {
           pkp = await LawCli.handleSelectPkp(lawCli, admin!);

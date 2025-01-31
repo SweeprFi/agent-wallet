@@ -2,39 +2,8 @@ import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { LIT_NETWORK } from '@lit-protocol/constants';
 import { ethers } from 'ethers';
 
-import { LocalStorage } from './storage';
 import { CapacityCreditMintOptions, CapacityCreditInfo } from '../types';
 import { AwSignerError, AwSignerErrorType } from '../errors';
-
-/**
- * Load capacity credit ID from storage
- */
-export function loadCapacityCreditFromStorage(
-  storage: LocalStorage
-): CapacityCreditInfo | null {
-  try {
-    const capacityCredit = storage.getItem('capacityCredit');
-    if (capacityCredit) {
-      return JSON.parse(capacityCredit) as CapacityCreditInfo;
-    }
-  } catch (error) {
-    throw new AwSignerError(
-      AwSignerErrorType.STORAGE_FAILED_TO_GET_ITEM,
-      'Failed to retrieve capacity credit from storage',
-      {
-        details: error,
-      }
-    );
-  }
-  return null;
-}
-
-export function saveCapacityCreditToStorage(
-  storage: LocalStorage,
-  capacityCreditInfo: CapacityCreditInfo
-) {
-  storage.setItem('capacityCredit', JSON.stringify(capacityCreditInfo));
-}
 
 /**
  * Check if the current network requires capacity credits

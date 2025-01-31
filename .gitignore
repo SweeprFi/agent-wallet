@@ -48,6 +48,6 @@ Thumbs.db
 
 test-output
 
-.aw-signer-admin-storage
-.aw-signer-delegatee-storage
+.law-signer-admin-storage
+.law-signer-delegatee-storage
 .law-cli-storage

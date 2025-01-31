@@ -2,16 +2,21 @@ import prompts from 'prompts';
 
 import { GeneralErrors, LawCliError, logger } from '../../core';
 import type { Admin } from './admin';
+import { PkpInfo } from '@lit-protocol/agent-wallet';
 
 export enum AdminMenuChoice {
   AdminSettings = 'adminSettings',
+  SelectPkp = 'selectPkp',
   ManageTools = 'manageTools',
   ManagePolicies = 'managePolicies',
   ManageDelegatees = 'manageDelegatees',
   Back = 'back',
 }
 
-const promptAdminMenu = async (admin?: Admin): Promise<AdminMenuChoice> => {
+const promptAdminMenu = async (
+  admin?: Admin,
+  pkp?: PkpInfo
+): Promise<AdminMenuChoice> => {
   const disableManageOptions = !admin;
   if (disableManageOptions) {
     logger.warn(
@@ -27,6 +32,14 @@ const promptAdminMenu = async (admin?: Admin): Promise<AdminMenuChoice> => {
       {
         title: 'Admin Settings',
         value: AdminMenuChoice.AdminSettings,
+      },
+      {
+        title: 'Select Agent Wallet to Manage',
+        description: pkp
+          ? `Currently managing: ${pkp.info.ethAddress}`
+          : 'No Agent Wallet selected',
+        value: AdminMenuChoice.SelectPkp,
+        disabled: disableManageOptions,
       },
       {
         title: 'Manage Tools',
@@ -58,10 +71,11 @@ const promptAdminMenu = async (admin?: Admin): Promise<AdminMenuChoice> => {
 };
 
 export const handleAdminMenu = async (
-  admin?: Admin
+  admin?: Admin,
+  pkp?: PkpInfo
 ): Promise<AdminMenuChoice> => {
   try {
-    return promptAdminMenu(admin);
+    return promptAdminMenu(admin, pkp);
   } catch (error) {
     if (error instanceof LawCliError) {
       if (error.type === GeneralErrors.NO_ACTION_SELECTED) {
