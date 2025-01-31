@@ -1,6 +1,8 @@
-# Lit Protocol Agent Wallet
+# Lit Agent Wallet
 
-Welcome to the **Lit Protocol Agent Wallet** project! This repository provides a secure and trustless solution for managing AI Agent wallets using the Lit SDK. The framework ensures that Agent owners retain full control over their funds, preventing tampering by Agent developers.
+Welcome to the **L**it **A**gent **W**allet (LAW) project! This repository provides a secure and trustless solution for managing AI Agent wallets using the Lit SDK. The framework ensures that Agent owners retain full control over their funds, preventing tampering by Agent developers.
+
+In addition to the documentation here, please visit [here](https://developer.litprotocol.com/agent-wallet/intro) for a more detail guide on what LAW is, and how you can get started with it!
 
 ## Table of Contents
 
