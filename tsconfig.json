@@ -32,9 +32,6 @@
     },
     {
       "path": "./packages/aw-tool-registry"
-    },
-    {
-      "path": "./packages/law-cli"
     }
   ]
 }
