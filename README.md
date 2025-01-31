@@ -90,7 +90,7 @@ Key packages and their purposes:
 - **aw-tool-registry**: Central registry for managing and accessing all available tools/actions
 - **aw-signer**: Core package handling signing operations, PKP interactions, and policy enforcement
 - **agent-wallet**: Main package implementing the agent wallet functionality and integrating all components
-- **aw-cli**: Command-line interface for interacting with the agent wallet system
+- **law-cli**: Command-line interface for interacting with the agent wallet system
 - **aw-subagent-openai**: OpenAI integration for intelligent agent functionality and intent parsing
 - **aw-contracts**: Smart contract implementations and interfaces for the Agent Wallet system
 - **aw-tool-erc20-transfer**: Specialized tool for handling ERC20 token transfers
@@ -200,7 +200,7 @@ After creation, you'll need to:
   - Type definitions
 - **Exports**: Core functionality from aw-signer and aw-subagent-openai
 
-#### @lit-protocol/aw-cli
+#### @lit-protocol/law-cli
 - **Purpose**: Command-line interface
 - **Features**:
   - Role-based commands (Admin/Delegatee)
@@ -215,22 +215,22 @@ After creation, you'll need to:
 
 ### CLI Users
 
-You can install the Agent Wallet CLI [from NPM](https://www.npmjs.com/package/@lit-protocol/aw-cli) using:
+You can install the Agent Wallet CLI [from NPM](https://www.npmjs.com/package/@lit-protocol/law-cli) using:
 
 ```bash
-pnpm add -g @lit-protocol/aw-cli
+pnpm add -g @lit-protocol/law-cli
 ```
 
 or
 
 ```bash
-npm install -g @lit-protocol/aw-cli
+npm install -g @lit-protocol/law-cli
 ```
 
 or 
 
 ```bash
-yarn global add @lit-protocol/aw-cli
+yarn global add @lit-protocol/law-cli
 ```
 
 ### For Developers
