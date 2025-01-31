@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ethers } from 'ethers';
+import { BaseEthereumAddressSchema } from '@lit-protocol/aw-tool';
 
 /**
  * Schema for validating a Enso policy.
@@ -12,7 +13,7 @@ const policySchema = z.object({
   /** The version of the policy. */
   version: z.string(),
 
-  
+  allowedTokens: z.array(BaseEthereumAddressSchema),
 });
 
 /**
@@ -26,8 +27,8 @@ function encodePolicy(policy: EnsoPolicyType): string {
   policySchema.parse(policy);
 
   return ethers.utils.defaultAbiCoder.encode(
-    ['tuple()'],
-    [policy]
+    ['tuple(address[] allowedTokens)'],
+    [{ allowedTokens: policy.allowedTokens }]
   );
 }
 
@@ -39,14 +40,14 @@ function encodePolicy(policy: EnsoPolicyType): string {
  */
 function decodePolicy(encodedPolicy: string): EnsoPolicyType {
   const decoded = ethers.utils.defaultAbiCoder.decode(
-    ['tuple()'],
+    ['tuple(address[] allowedTokens)'],
     encodedPolicy
   )[0];
 
   const policy: EnsoPolicyType = {
     type: 'Enso',
     version: '1.0.0',
-    
+    allowedTokens: decoded.allowedTokens,
   };
 
   return policySchema.parse(policy);
@@ -77,3 +78,4 @@ export const EnsoPolicy = {
   /** Decodes a Enso policy from its on-chain encoded format. */
   decode: decodePolicy,
 };
+

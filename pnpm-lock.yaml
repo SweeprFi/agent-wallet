@@ -227,6 +227,9 @@ importers:
 
   packages/aw-tool-enso:
     dependencies:
+      '@ensofinance/sdk':
+        specifier: ^1.0.10
+        version: 1.0.10
       '@lit-protocol/aw-tool':
         specifier: workspace:*
         version: link:../aw-tool
@@ -1015,6 +1018,9 @@ packages:
 
   '@emnapi/wasi-threads@1.0.1':
     resolution: {integrity: sha512-iIBu7mwkq4UQGeMEM8bLwNK962nXdhodeScX4slfQnRhEMMzvYivHhutCIk8uojvmASXXPC2WNEjwxFWk72Oqw==}
+
+  '@ensofinance/sdk@1.0.10':
+    resolution: {integrity: sha512-rpW3fbIaTPI6FZs+ia+VwUWlRaBP1XcGU3uK7u/u5YBcsFw8gRqECjBRAFStMJgS5T/q4QKYxP+D54J/YhDTbQ==}
 
   '@esbuild/aix-ppc64@0.19.12':
     resolution: {integrity: sha512-bmoCYyWdEL3wDQIVbcyzRyeKLgk2WtWLTWz1ZIAZF/EGbNOwSA6ew3PftJ1PqMiOOGu0OyFMzG53L0zqIpPeNA==}
@@ -3874,6 +3880,11 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
+  prettier@3.4.2:
+    resolution: {integrity: sha512-e9MewbtFo+Fevyuxn/4rrcDAaq0IYxPGLvObpQjiZBMAzB9IGmzlnG9RZy3FFas+eBMu2vA0CszMeduow5dIuQ==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   pretty-format@29.7.0:
     resolution: {integrity: sha512-Pdlw/oPxN+aXdmM9R00JVC9WVFoCLTKJvDVLgmJ+qAffBMxsV85l/Lu7sNx4zSzPyoL2euImuEwHhOXdEgNFZQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -5445,6 +5456,13 @@ snapshots:
   '@emnapi/wasi-threads@1.0.1':
     dependencies:
       tslib: 2.8.1
+
+  '@ensofinance/sdk@1.0.10':
+    dependencies:
+      axios: 1.7.9
+      prettier: 3.4.2
+    transitivePeerDependencies:
+      - debug
 
   '@esbuild/aix-ppc64@0.19.12':
     optional: true
@@ -9282,6 +9300,8 @@ snapshots:
   prelude-ls@1.2.1: {}
 
   prettier@2.8.8: {}
+
+  prettier@3.4.2: {}
 
   pretty-format@29.7.0:
     dependencies:

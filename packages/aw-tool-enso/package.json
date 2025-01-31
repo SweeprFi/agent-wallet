@@ -5,6 +5,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@ensofinance/sdk": "^1.0.10",
     "@lit-protocol/aw-tool": "workspace:*",
     "ethers": "^5.7.2",
     "tslib": "^2.8.1",

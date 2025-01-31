@@ -11,12 +11,19 @@ import { IPFS_CIDS } from './ipfs';
 
 /**
  * Parameters required for the Enso Lit Action.
- * @property {string} pkpEthAddress - The Ethereum address of the PKP.
- 
+ * @property {string} tokenIn - The ERC20 token contract address to route away from.
+ * @property {string} tokenOut - The ERC20 token contract address to route to.
+ * @property {string} amountIn - The amount of tokens to send as a string (will be parsed based on token decimals).
+ * @property {string} chainId - The ID of the blockchain network.
+ * @property {string} rpcUrl - The RPC URL of the blockchain network.
  */
 export interface EnsoLitActionParameters {
   pkpEthAddress: string;
-  ;
+  tokenIn: string;
+  tokenOut: string;
+  amountIn: string;
+  chainId: string;
+  rpcUrl: string;
 }
 
 /**
@@ -29,7 +36,34 @@ const EnsoLitActionSchema = z.object({
       /^0x[a-fA-F0-9]{40}$/,
       'Must be a valid Ethereum address (0x followed by 40 hexadecimal characters)'
     ),
-  
+  tokenIn: z
+    .string()
+    .regex(
+      /^0x[a-fA-F0-9]{40}$/,
+      'Must be a valid Ethereum contract address (0x followed by 40 hexadecimal characters)'
+    ),
+  tokenOut: z
+    .string()
+    .regex(
+      /^0x[a-fA-F0-9]{40}$/,
+      'Must be a valid Ethereum contract address (0x followed by 40 hexadecimal characters)'
+    ),
+  amountIn: z
+    .string()
+    .regex(
+      /^\d*\.?\d+$/,
+      'Must be a valid decimal number as a string (e.g. "1.5" or "100")'
+    ),
+  chainId: z
+    .string()
+    .regex(/^\d+$/, 'Must be a valid chain ID number as a string'),
+  rpcUrl: z
+    .string()
+    .url()
+    .startsWith(
+      'https://',
+      'Must be a valid HTTPS URL for the blockchain RPC endpoint'
+    ),
 });
 
 /**
@@ -39,13 +73,22 @@ const EnsoLitActionSchema = z.object({
 const EnsoLitActionParameterDescriptions = {
   pkpEthAddress:
     'The Ethereum address of the PKP that will be used to perform the action.',
-  
+  tokenIn:
+    'The Ethereum contract address of the ERC20 token you want to route away from. Must be a valid Ethereum address starting with 0x.',
+  tokenOut:
+    'The Ethereum contract address of the ERC20 token you want to route to. Must be a valid Ethereum address starting with 0x.',
+  amountIn:
+    'The amount of tokens to send, specified as a string. This should be a decimal number (e.g. "1.5" or "100"). The amount will be automatically adjusted based on the token\'s decimals.',
+  chainId:
+    'The ID of the blockchain network to send the tokens on (e.g. 1 for Ethereum mainnet, 84532 for Base Sepolia).',
+  rpcUrl:
+    'The RPC URL of the blockchain network to connect to (e.g. "https://base-sepolia-rpc.publicnode.com").',
 } as const;
 
 /**
  * Validates the parameters for the Enso Lit Action.
  * @param params - The parameters to validate.
- * @returns `true` if the parameters are valid, or an array of errors if invalid.
+ * @returns {true | Array<{ param: string; error: string }>} - Returns `true` if valid, otherwise an array of errors.
  */
 const validateEnsoParameters = (
   params: unknown
@@ -99,3 +142,4 @@ export const Enso = Object.entries(NETWORK_CONFIGS).reduce(
     AwTool<EnsoLitActionParameters, EnsoPolicyType>
   >
 );
+
