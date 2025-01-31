@@ -2,7 +2,8 @@ import { type DelegatedPkpInfo, type AwTool } from '@lit-protocol/agent-wallet';
 import prompts from 'prompts';
 
 import { Delegatee } from './delegatee';
-import { LawCliError, logger, DelegateeErrors } from '../../core';
+import { LawCliError, logger, DelegateeErrors, LocalStorage } from '../../core';
+import { getToolParams } from './get-tool-params';
 
 /**
  * Prompts the user to select a tool from a list of available tools.
@@ -49,66 +50,12 @@ const promptSelectTool = async (
 };
 
 /**
- * Prompts the user to input parameters for a tool.
- */
-export const promptToolParams = async <T extends Record<string, any>>(
-  tool: AwTool<T, any>,
-  pkpEthAddress: string,
-  options?: {
-    missingParams?: Array<keyof T>;
-    foundParams?: Partial<T>;
-  }
-): Promise<T> => {
-  const params: Record<string, any> = { ...options?.foundParams };
-
-  const paramsToPrompt = options?.missingParams
-    ? Object.entries(tool.parameters.descriptions).filter(([paramName]) =>
-        options.missingParams?.includes(paramName as keyof T)
-      )
-    : Object.entries(tool.parameters.descriptions);
-
-  for (const [paramName, description] of paramsToPrompt) {
-    if (paramName === 'pkpEthAddress') {
-      params.pkpEthAddress = pkpEthAddress;
-      continue;
-    }
-
-    const { value } = await prompts({
-      type: 'text',
-      name: 'value',
-      message: `Enter ${paramName} (${description}):`,
-    });
-
-    if (value === undefined) {
-      throw new LawCliError(
-        DelegateeErrors.TOOL_PARAMS_CANCELLED,
-        'Parameter input was cancelled'
-      );
-    }
-
-    params[paramName] = value;
-  }
-
-  const validationResult = tool.parameters.validate(params);
-  if (validationResult !== true) {
-    const errors = validationResult
-      .map(({ param, error }) => `${param}: ${error}`)
-      .join('\n');
-    throw new LawCliError(
-      DelegateeErrors.TOOL_PARAMS_INVALID,
-      `Invalid parameters:\n${errors}`
-    );
-  }
-
-  return params as T;
-};
-
-/**
  * Handles the process of executing a tool.
  * This function displays available tools, prompts for tool selection and parameters,
  * and executes the selected tool with the provided parameters.
  */
 export const handleExecuteTool = async (
+  localStorage: LocalStorage,
   delegatee: Delegatee,
   pkp: DelegatedPkpInfo
 ): Promise<void> => {
@@ -164,7 +111,11 @@ export const handleExecuteTool = async (
 
     // Prompt for tool parameters
     logger.info('Enter Tool Parameters:');
-    const params = await promptToolParams(selectedTool, pkp.ethAddress);
+    const params = await getToolParams(
+      localStorage,
+      selectedTool,
+      pkp.ethAddress
+    );
 
     // Execute the tool
     logger.info('Executing tool...');

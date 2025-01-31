@@ -484,14 +484,18 @@ export class LawCli {
           lawCli.delegatee!.setIntentMatcher(intentMatcher);
         }
 
-        await handleExecuteToolViaIntent(lawCli.delegatee!, pkp);
+        await handleExecuteToolViaIntent(
+          lawCli.localStorage,
+          lawCli.delegatee!,
+          pkp
+        );
         await LawCli.handleDelegateeMenu(lawCli, pkp);
         break;
       case DelegateeMenuChoice.ExecuteTool:
         if (pkp === undefined) {
           pkp = await LawCli.handleSelectDelegatedPkp(lawCli);
         }
-        await handleExecuteTool(lawCli.delegatee!, pkp);
+        await handleExecuteTool(lawCli.localStorage, lawCli.delegatee!, pkp);
         await LawCli.handleDelegateeMenu(lawCli, pkp);
         break;
       case DelegateeMenuChoice.Back:

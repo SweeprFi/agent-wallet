@@ -2,8 +2,8 @@ import { type DelegatedPkpInfo } from '@lit-protocol/agent-wallet';
 import prompts from 'prompts';
 
 import { Delegatee } from './delegatee';
-import { LawCliError, logger, DelegateeErrors } from '../../core';
-import { promptToolParams } from './execute-tool';
+import { LawCliError, logger, DelegateeErrors, LocalStorage } from '../../core';
+import { getToolParams } from './get-tool-params';
 
 /**
  * Prompts the user to enter their intent for finding a matching tool.
@@ -31,6 +31,7 @@ const promptToolMatchingIntent = async (): Promise<string> => {
  * then prompts for any missing parameters, and executes the tool.
  */
 export const handleExecuteToolViaIntent = async (
+  localStorage: LocalStorage,
   delegatee: Delegatee,
   pkp: DelegatedPkpInfo
 ): Promise<void> => {
@@ -68,7 +69,8 @@ export const handleExecuteToolViaIntent = async (
     );
 
     // Prompt for any missing parameters
-    const params = await promptToolParams(
+    const params = await getToolParams(
+      localStorage,
       intentMatcherResponse.matchedTool,
       pkp.ethAddress,
       {
