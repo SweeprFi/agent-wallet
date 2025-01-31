@@ -10,6 +10,7 @@ import {
   AdminConfig,
   AgentConfig,
   LitNetwork,
+  PkpInfo,
   ToolInfoWithDelegateePolicy,
 } from './types';
 import {
@@ -18,15 +19,22 @@ import {
   getRegisteredToolsAndDelegatees,
 } from './utils/pkp-tool-registry';
 import { LocalStorage } from './utils/storage';
-import { loadPkpsFromStorage, mintPkp, savePkpsToStorage } from './utils/pkp';
 import { AwSignerError, AwSignerErrorType } from './errors';
+
+type AdminStorageLayout = {
+  [ethAddress: string]: {
+    privateKey: string;
+    pkps: PkpInfo[];
+  };
+};
 
 /**
  * The `Admin` class is responsible for the ownership of the PKP (Programmable Key Pair),
  * the registration and management of tools, policies, and delegatees.
  */
 export class Admin {
-  private static readonly DEFAULT_STORAGE_PATH = './.aw-signer-admin-storage';
+  private static readonly DEFAULT_STORAGE_PATH = './.law-signer-admin-storage';
+  private static readonly ADMIN_STORAGE_KEY = 'admins';
   // TODO: Add min balance check
   // private static readonly MIN_BALANCE = ethers.utils.parseEther('0.001');
 
@@ -62,11 +70,51 @@ export class Admin {
     this.adminWallet = adminWallet;
   }
 
+  private static loadAdminsFromStorage(
+    storage: LocalStorage
+  ): AdminStorageLayout {
+    const adminData = storage.getItem(Admin.ADMIN_STORAGE_KEY);
+    if (!adminData) {
+      return {};
+    }
+    return JSON.parse(adminData) as AdminStorageLayout;
+  }
+
+  private static saveAdminsToStorage(
+    storage: LocalStorage,
+    admins: AdminStorageLayout
+  ): void {
+    storage.setItem(Admin.ADMIN_STORAGE_KEY, JSON.stringify(admins));
+  }
+
+  private static loadPkpsFromStorage(
+    storage: LocalStorage,
+    adminAddress: string
+  ): PkpInfo[] {
+    const admins = Admin.loadAdminsFromStorage(storage);
+    return admins[adminAddress]?.pkps || [];
+  }
+
+  private static savePkpsToStorage(
+    storage: LocalStorage,
+    adminAddress: string,
+    pkps: PkpInfo[]
+  ): void {
+    const admins = Admin.loadAdminsFromStorage(storage);
+    if (!admins[adminAddress]) {
+      admins[adminAddress] = { privateKey: '', pkps: [] };
+    }
+    admins[adminAddress].pkps = pkps;
+    Admin.saveAdminsToStorage(storage, admins);
+  }
+
   private static async removePkpFromStorage(
     storage: LocalStorage,
+    adminAddress: string,
     pkpTokenId: string
   ) {
-    const pkps = loadPkpsFromStorage(storage);
+    const admins = Admin.loadAdminsFromStorage(storage);
+    const pkps = admins[adminAddress]?.pkps || [];
     const index = pkps.findIndex((p) => p.info.tokenId === pkpTokenId);
 
     if (index === -1) {
@@ -77,7 +125,31 @@ export class Admin {
     }
 
     pkps.splice(index, 1);
-    savePkpsToStorage(storage, pkps);
+    admins[adminAddress].pkps = pkps;
+    Admin.saveAdminsToStorage(storage, admins);
+  }
+
+  private static async mintPkp(
+    litContracts: LitContracts,
+    wallet: ethers.Wallet
+  ): Promise<PkpInfo> {
+    const mintCost = await litContracts.pkpNftContract.read.mintCost();
+    if (mintCost.gt(await wallet.getBalance())) {
+      throw new AwSignerError(
+        AwSignerErrorType.INSUFFICIENT_BALANCE_PKP_MINT,
+        `${await wallet.getAddress()} has insufficient balance to mint PKP: ${ethers.utils.formatEther(
+          await wallet.getBalance()
+        )} < ${ethers.utils.formatEther(mintCost)}`
+      );
+    }
+
+    const mintMetadata = await litContracts.pkpNftContractUtils.write.mint();
+
+    return {
+      info: mintMetadata.pkp,
+      mintTx: mintMetadata.tx,
+      mintReceipt: mintMetadata.res,
+    };
   }
 
   /**
@@ -110,22 +182,24 @@ export class Admin {
 
     let adminWallet: ethers.Wallet;
     if (adminConfig.type === 'eoa') {
-      const storedPrivateKey = storage.getItem('privateKey');
-      const adminPrivateKey = adminConfig.privateKey || storedPrivateKey;
-
-      if (adminPrivateKey === null) {
+      if (!adminConfig.privateKey) {
         throw new AwSignerError(
           AwSignerErrorType.ADMIN_MISSING_PRIVATE_KEY,
-          'Admin private key not provided and not found in storage. Please provide a private key.'
+          'Admin private key not provided. Please provide a private key.'
         );
       }
 
-      // Only save if not already stored
-      if (!storedPrivateKey) {
-        storage.setItem('privateKey', adminPrivateKey);
-      }
+      adminWallet = new ethers.Wallet(adminConfig.privateKey, provider);
 
-      adminWallet = new ethers.Wallet(adminPrivateKey, provider);
+      // Initialize storage for this admin if not already present
+      const admins = Admin.loadAdminsFromStorage(storage);
+      if (!admins[adminWallet.address]) {
+        admins[adminWallet.address] = {
+          privateKey: adminConfig.privateKey,
+          pkps: [],
+        };
+        Admin.saveAdminsToStorage(storage, admins);
+      }
     } else {
       throw new AwSignerError(
         AwSignerErrorType.ADMIN_MULTISIG_NOT_IMPLEMENTED,
@@ -161,7 +235,7 @@ export class Admin {
    * @returns An array of PKP metadata.
    */
   public async getPkps() {
-    return loadPkpsFromStorage(this.storage);
+    return Admin.loadPkpsFromStorage(this.storage, this.adminWallet.address);
   }
 
   /**
@@ -190,9 +264,12 @@ export class Admin {
    */
   public async mintPkp() {
     const pkps = await this.getPkps();
-    const mintMetadata = await mintPkp(this.litContracts, this.adminWallet);
+    const mintMetadata = await Admin.mintPkp(
+      this.litContracts,
+      this.adminWallet
+    );
     pkps.push(mintMetadata);
-    savePkpsToStorage(this.storage, pkps);
+    Admin.savePkpsToStorage(this.storage, this.adminWallet.address, pkps);
 
     return mintMetadata;
   }
@@ -221,7 +298,11 @@ export class Admin {
       );
     }
 
-    await Admin.removePkpFromStorage(this.storage, pkpTokenId);
+    await Admin.removePkpFromStorage(
+      this.storage,
+      this.adminWallet.address,
+      pkpTokenId
+    );
 
     return receipt;
   }
@@ -778,7 +859,7 @@ export class Admin {
    * @param ipfsCid - The IPFS CID of the tool.
    * @param delegatee - The address of the delegatee.
    * @param parameterNames - An array of policy parameter names.
-   * @returns A promise that resolves to an array of policy parameter values.
+   * @returns A promise that resolves to an array of tuples containing policy parameter names and values.
    * @throws If the tool policy registry contract is not initialized.
    */
   public async getToolPolicyParametersForDelegatee(
@@ -786,7 +867,7 @@ export class Admin {
     ipfsCid: string,
     delegatee: string,
     parameterNames: string[]
-  ) {
+  ): Promise<{ name: string; value: string }[]> {
     if (!this.toolRegistryContract) {
       throw new Error('Tool policy manager not initialized');
     }

@@ -22,13 +22,12 @@ import type {
   DelegatedPkpInfo,
   IntentMatcher,
   IntentMatcherResponse,
+  CapacityCreditInfo,
 } from './types';
 import {
   isCapacityCreditExpired,
-  loadCapacityCreditFromStorage,
   mintCapacityCredit,
   requiresCapacityCredit,
-  saveCapacityCreditToStorage,
 } from './utils/capacity-credit';
 import { LocalStorage } from './utils/storage';
 import { AwSignerError, AwSignerErrorType } from './errors';
@@ -37,6 +36,16 @@ import {
   getPkpToolRegistryContract,
   getPermittedToolsForDelegatee,
 } from './utils/pkp-tool-registry';
+
+type DelegateeStorageLayout = {
+  [ethAddress: string]: {
+    privateKey: string;
+    capacityCredit?: CapacityCreditInfo;
+    credentials?: {
+      [credentialName: string]: string;
+    };
+  };
+};
 
 /**
  * The `Delegatee` class is responsible for executing tools on behalf of the PKP Admin.
@@ -48,7 +57,8 @@ import {
  */
 export class Delegatee implements CredentialStore {
   private static readonly DEFAULT_STORAGE_PATH =
-    './.aw-signer-delegatee-storage';
+    './.law-signer-delegatee-storage';
+  private static readonly DELEGATEE_STORAGE_KEY = 'delegatees';
 
   private readonly storage: LocalStorage;
   private readonly litNodeClient: LitNodeClientNodeJs;
@@ -83,20 +93,45 @@ export class Delegatee implements CredentialStore {
     this.delegateeWallet = delegateeWallet;
   }
 
+  private static loadDelegateesFromStorage(
+    storage: LocalStorage
+  ): DelegateeStorageLayout {
+    const delegateeData = storage.getItem(Delegatee.DELEGATEE_STORAGE_KEY);
+    if (!delegateeData) {
+      return {};
+    }
+    return JSON.parse(delegateeData) as DelegateeStorageLayout;
+  }
+
+  private static saveDelegateesToStorage(
+    storage: LocalStorage,
+    delegatees: DelegateeStorageLayout
+  ): void {
+    storage.setItem(
+      Delegatee.DELEGATEE_STORAGE_KEY,
+      JSON.stringify(delegatees)
+    );
+  }
+
   /**
    * Retrieves or mints a capacity credit for the Delegatee.
    * If a capacity credit is already stored and not expired, it is loaded; otherwise, a new capacity credit is minted.
    *
    * @param litContracts - An instance of `LitContracts`.
    * @param storage - An instance of `LocalStorage` for storing capacity credit information.
+   * @param delegateeAddress - The address of the delegatee.
    * @returns A promise that resolves to the capacity credit information or `null` if not required.
    */
   private static async getCapacityCredit(
     litContracts: LitContracts,
-    storage: LocalStorage
+    storage: LocalStorage,
+    delegateeAddress: string
   ) {
     if (requiresCapacityCredit(litContracts)) {
-      const capacityCreditInfo = loadCapacityCreditFromStorage(storage);
+      const delegatees = Delegatee.loadDelegateesFromStorage(storage);
+      const capacityCreditInfo =
+        delegatees[delegateeAddress]?.capacityCredit || null;
+
       if (
         capacityCreditInfo !== null &&
         !isCapacityCreditExpired(
@@ -108,7 +143,13 @@ export class Delegatee implements CredentialStore {
       }
 
       const mintMetadata = await mintCapacityCredit(litContracts);
-      saveCapacityCreditToStorage(storage, mintMetadata);
+
+      // Update storage with new capacity credit
+      if (!delegatees[delegateeAddress]) {
+        delegatees[delegateeAddress] = { privateKey: '' };
+      }
+      delegatees[delegateeAddress].capacityCredit = mintMetadata;
+      Delegatee.saveDelegateesToStorage(storage, delegatees);
 
       return mintMetadata;
     }
@@ -144,22 +185,32 @@ export class Delegatee implements CredentialStore {
       toolPolicyRegistryConfig.rpcUrl
     );
 
-    const storedPrivateKey = storage.getItem('privateKey');
-    const _delegateePrivateKey = delegateePrivateKey || storedPrivateKey;
+    // Create temporary wallet to get address for storage lookup
+    const tempWallet = delegateePrivateKey
+      ? new ethers.Wallet(delegateePrivateKey)
+      : null;
+    const delegatees = Delegatee.loadDelegateesFromStorage(storage);
+    const delegateeData = tempWallet ? delegatees[tempWallet.address] : null;
 
-    if (_delegateePrivateKey === null) {
+    const _delegateePrivateKey =
+      delegateePrivateKey || delegateeData?.privateKey;
+
+    if (_delegateePrivateKey === null || _delegateePrivateKey === undefined) {
       throw new AwSignerError(
         AwSignerErrorType.DELEGATEE_MISSING_PRIVATE_KEY,
         'Delegatee private key not provided and not found in storage. Please provide a private key.'
       );
     }
 
-    // Only save if not already stored
-    if (!storedPrivateKey) {
-      storage.setItem('privateKey', _delegateePrivateKey);
-    }
-
     const delegateeWallet = new ethers.Wallet(_delegateePrivateKey, provider);
+
+    // Save delegatee data if not already stored
+    if (!delegateeData) {
+      delegatees[delegateeWallet.address] = {
+        privateKey: _delegateePrivateKey,
+      };
+      Delegatee.saveDelegateesToStorage(storage, delegatees);
+    }
 
     const litNodeClient = new LitNodeClientNodeJs({
       litNetwork,
@@ -175,7 +226,11 @@ export class Delegatee implements CredentialStore {
     await litContracts.connect();
 
     // Will mint a Capacity Credit if none exists
-    await Delegatee.getCapacityCredit(litContracts, storage);
+    await Delegatee.getCapacityCredit(
+      litContracts,
+      storage,
+      delegateeWallet.address
+    );
 
     return new Delegatee(
       litNetwork,
@@ -314,7 +369,8 @@ export class Delegatee implements CredentialStore {
 
     const capacityCreditInfo = await Delegatee.getCapacityCredit(
       this.litContracts,
-      this.storage
+      this.storage,
+      this.delegateeWallet.address
     );
 
     let capacityDelegationAuthSig: AuthSig | undefined;
@@ -391,11 +447,15 @@ export class Delegatee implements CredentialStore {
     foundCredentials: Partial<CredentialsFor<T>>;
     missingCredentials: string[];
   }> {
+    const delegatees = Delegatee.loadDelegateesFromStorage(this.storage);
+    const storedCredentials =
+      delegatees[this.delegateeWallet.address]?.credentials || {};
+
     const foundCredentials: Record<string, string> = {};
     const missingCredentials: string[] = [];
 
     for (const credentialName of requiredCredentialNames) {
-      const storedCred = this.storage.getItem(credentialName);
+      const storedCred = storedCredentials[credentialName];
       if (storedCred) {
         foundCredentials[credentialName] = storedCred;
       } else {
@@ -417,15 +477,29 @@ export class Delegatee implements CredentialStore {
   public async setCredentials<T>(
     credentials: Partial<CredentialsFor<T>>
   ): Promise<void> {
+    const delegatees = Delegatee.loadDelegateesFromStorage(this.storage);
+    if (!delegatees[this.delegateeWallet.address]) {
+      delegatees[this.delegateeWallet.address] = {
+        privateKey: this.delegateeWallet.privateKey.toString(),
+      };
+    }
+
+    // Initialize credentials object if it doesn't exist
+    if (!delegatees[this.delegateeWallet.address].credentials) {
+      delegatees[this.delegateeWallet.address].credentials = {};
+    }
+
     for (const [key, value] of Object.entries(credentials)) {
       if (typeof value === 'string') {
-        this.storage.setItem(key, value);
+        delegatees[this.delegateeWallet.address].credentials![key] = value;
       } else {
         throw new Error(
           `Invalid credential value for ${key}: value must be a string`
         );
       }
     }
+
+    Delegatee.saveDelegateesToStorage(this.storage, delegatees);
   }
 
   /**

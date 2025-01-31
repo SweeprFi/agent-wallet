@@ -20,7 +20,7 @@ This was a version bump only, there were no code changes.
 
 ## 0.1.0-9 (2025-01-12)
 
-### `@lit-protocol/aw-cli`
+### `@lit-protocol/law-cli`
 
 #### Added
 
