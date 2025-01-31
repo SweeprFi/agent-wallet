@@ -6,6 +6,9 @@ export enum StorageKeys {
   ADMIN_SIGNER_TYPE = 'adminSignerType',
   ADMIN_STORAGE = 'adminStorage',
   ADMIN_ACTIVE_ADDRESS = 'adminActiveAddress',
+  DELEGATEE_STORAGE = 'delegateeStorage',
+  DELEGATEE_ACTIVE_ADDRESS = 'delegateeActiveAddress',
+  DELEGATEE_SIGNER_TYPE = 'delegateeSignerType',
 }
 
 export class LocalStorage {

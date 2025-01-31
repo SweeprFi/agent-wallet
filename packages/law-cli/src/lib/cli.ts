@@ -1,8 +1,13 @@
-import { LitNetwork, type PkpInfo } from '@lit-protocol/agent-wallet';
+import {
+  LitNetwork,
+  type PkpInfo,
+  type DelegatedPkpInfo,
+} from '@lit-protocol/agent-wallet';
 import { LIT_CHAINS } from '@lit-protocol/constants';
 
 import {
   AdminErrors,
+  DelegateeErrors,
   getLitNetwork,
   LawCliError,
   LocalStorage,
@@ -24,13 +29,9 @@ import {
   handleAdminMenu,
   handleAdminSettingsMenu,
   AdminSettingsMenuChoice,
-  handleConfigureSignerMenu,
-  ConfigureSignerMenuChoice,
-  handleUseEoa,
   Admin,
   ManageToolsMenuChoice,
   handleManageToolsMenu,
-  handleSelectPkp,
   handlePermitTool,
   handleRemoveTool,
   handleEnableTool,
@@ -55,6 +56,24 @@ import {
   handleGetToolPolicyParameter,
   handleRemoveToolPolicyParameter,
   handleSetToolPolicyParameter,
+  Delegatee,
+  handleDelegateeMenu,
+  DelegateeMenuChoice,
+  DelegateeSettingsMenuChoice,
+  handleDelegateeSettingsMenu,
+  handleConfigureDelegateeSignerMenu,
+  handleConfigureAdminSignerMenu,
+  AdminConfigureSignerMenuChoice,
+  DelegateeConfigureSignerMenuChoice,
+  handleUseEoaForAdmin,
+  handleUseEoaForDelegatee,
+  handleSelectPkpForAdmin,
+  handleSelectPkpForDelegatee,
+  handleGetDelegatedPkps,
+  handleGetRegisteredTools,
+  handleGetToolPolicyForDelegatee,
+  handleGetToolViaIntent,
+  handleGetIntentMatcher,
 } from './main-menu';
 
 export class LawCli {
@@ -63,6 +82,8 @@ export class LawCli {
   private localStorage: LocalStorage;
 
   public litNetwork: LitNetwork;
+  public admin?: Admin;
+  public delegatee?: Delegatee;
 
   private constructor(localStorage: LocalStorage, litNetwork: LitNetwork) {
     this.localStorage = localStorage;
@@ -94,14 +115,15 @@ export class LawCli {
     localStorage.setItem(StorageKeys.RPCS, JSON.stringify(sortedChains));
   }
 
-  private static async showMainMenu(lawCli: LawCli, admin?: Admin) {
+  private static async showMainMenu(lawCli: LawCli) {
     const option = await handleMainMenu();
 
     switch (option) {
       case MainMenuChoice.AdminMenu:
-        await LawCli.handleAdminMenu(lawCli, admin);
+        await LawCli.handleAdminMenu(lawCli);
         break;
       case MainMenuChoice.DelegateeMenu:
+        await LawCli.handleDelegateeMenu(lawCli);
         break;
       case MainMenuChoice.CliSettings:
         await LawCli.handleCliSettingsMenu(lawCli);
@@ -110,18 +132,21 @@ export class LawCli {
 
     // If we reach this point, that means the user has exited the CLI,
     // or one of the CLI options didn't loop back to a menu.
-    if (admin !== undefined) {
-      admin.awAdmin.disconnect();
+    if (lawCli.admin !== undefined) {
+      lawCli.admin.awAdmin.disconnect();
+    }
+    if (lawCli.delegatee !== undefined) {
+      lawCli.delegatee.awDelegatee.disconnect();
     }
 
     process.exit(0);
   }
 
-  private static async handleSelectPkp(lawCli: LawCli, admin: Admin) {
+  private static async handleSelectPkp(lawCli: LawCli) {
     try {
-      const pkpOrNull = await handleSelectPkp(admin);
+      const pkpOrNull = await handleSelectPkpForAdmin(lawCli.admin!);
       if (pkpOrNull === null) {
-        await LawCli.handleAdminMenu(lawCli, admin);
+        await LawCli.handleAdminMenu(lawCli);
       }
       return pkpOrNull as PkpInfo;
     } catch (error) {
@@ -130,7 +155,29 @@ export class LawCli {
           error.type === AdminErrors.NO_PKPS_FOUND ||
           error.type === AdminErrors.PKP_SELECTION_CANCELLED
         ) {
-          await LawCli.handleAdminMenu(lawCli, admin);
+          await LawCli.handleAdminMenu(lawCli);
+        }
+      }
+      throw error;
+    }
+  }
+
+  private static async handleSelectDelegatedPkp(
+    lawCli: LawCli
+  ): Promise<DelegatedPkpInfo> {
+    try {
+      const pkpOrNull = await handleSelectPkpForDelegatee(lawCli.delegatee!);
+      if (pkpOrNull === null) {
+        await LawCli.handleDelegateeMenu(lawCli);
+      }
+      return pkpOrNull as DelegatedPkpInfo;
+    } catch (error) {
+      if (error instanceof LawCliError) {
+        if (
+          error.type === DelegateeErrors.DELEGATEE_SELECTION_CANCELLED ||
+          error.type === DelegateeErrors.NO_DELEGATED_PKPS
+        ) {
+          await LawCli.handleDelegateeMenu(lawCli);
         }
       }
       throw error;
@@ -184,11 +231,7 @@ export class LawCli {
     }
   }
 
-  private static async handleAdminMenu(
-    lawCli: LawCli,
-    admin?: Admin,
-    pkp?: PkpInfo
-  ) {
+  private static async handleAdminMenu(lawCli: LawCli, pkp?: PkpInfo) {
     // TODO I don't think this is needed since options other than AdminSettings
     // are not available if an Admin is not configured.
     // If an instance of Admin is not provided, prompt the user to configure an Admin signer
@@ -202,195 +245,268 @@ export class LawCli {
     //   }
     // }
 
-    const option = await handleAdminMenu(admin, pkp);
+    const option = await handleAdminMenu(lawCli.admin!, pkp);
 
     switch (option) {
       case AdminMenuChoice.AdminSettings:
-        await LawCli.handleAdminSettingsMenu(lawCli, admin);
+        await LawCli.handleAdminSettingsMenu(lawCli);
         break;
       case AdminMenuChoice.SelectPkp: {
-        const selectedPkp = await LawCli.handleSelectPkp(lawCli, admin!);
-        await LawCli.handleAdminMenu(lawCli, admin, selectedPkp);
+        const selectedPkp = await LawCli.handleSelectPkp(lawCli);
+        await LawCli.handleAdminMenu(lawCli, selectedPkp);
         break;
       }
       case AdminMenuChoice.ManageTools:
         if (pkp === undefined) {
-          pkp = await LawCli.handleSelectPkp(lawCli, admin!);
+          pkp = await LawCli.handleSelectPkp(lawCli);
         }
-        await LawCli.handleManageToolsMenu(lawCli, admin!, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, pkp);
         break;
       case AdminMenuChoice.ManagePolicies:
         if (pkp === undefined) {
-          pkp = await LawCli.handleSelectPkp(lawCli, admin!);
+          pkp = await LawCli.handleSelectPkp(lawCli);
         }
-        await LawCli.handleManagePoliciesMenu(lawCli, admin!, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, pkp);
         break;
       case AdminMenuChoice.ManageDelegatees:
         if (pkp === undefined) {
-          pkp = await LawCli.handleSelectPkp(lawCli, admin!);
+          pkp = await LawCli.handleSelectPkp(lawCli);
         }
-        await LawCli.handleManageDelegateesMenu(lawCli, admin!, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, pkp);
         break;
       case AdminMenuChoice.Back:
-        await LawCli.showMainMenu(lawCli, admin);
+        await LawCli.showMainMenu(lawCli);
         break;
     }
   }
 
-  private static async handleAdminSettingsMenu(lawCli: LawCli, admin?: Admin) {
+  private static async handleAdminSettingsMenu(lawCli: LawCli) {
     const option = await handleAdminSettingsMenu();
 
     switch (option) {
       case AdminSettingsMenuChoice.ConfigureSigner: {
-        await LawCli.handleAdminConfigureSignerMenu(lawCli, admin);
+        await LawCli.handleAdminConfigureSignerMenu(lawCli);
         break;
       }
       case AdminSettingsMenuChoice.Back:
-        await LawCli.handleAdminMenu(lawCli, admin);
+        await LawCli.handleAdminMenu(lawCli);
         break;
     }
   }
 
-  private static async handleAdminConfigureSignerMenu(
-    lawCli: LawCli,
-    admin?: Admin
-  ) {
-    const signerOption = await handleConfigureSignerMenu();
+  private static async handleAdminConfigureSignerMenu(lawCli: LawCli) {
+    const signerOption = await handleConfigureAdminSignerMenu();
 
     switch (signerOption) {
-      case ConfigureSignerMenuChoice.UseEoa: {
-        const admin = await handleUseEoa(lawCli.localStorage);
-        await LawCli.handleAdminMenu(lawCli, admin);
+      case AdminConfigureSignerMenuChoice.UseEoa: {
+        lawCli.admin = await handleUseEoaForAdmin(lawCli.localStorage);
+        await LawCli.handleAdminMenu(lawCli);
         break;
       }
-      case ConfigureSignerMenuChoice.UseMultiSig:
+      case AdminConfigureSignerMenuChoice.UseMultiSig:
         break;
-      case ConfigureSignerMenuChoice.UsePkp:
+      case AdminConfigureSignerMenuChoice.UsePkp:
         break;
-      case ConfigureSignerMenuChoice.Back:
-        await LawCli.handleAdminSettingsMenu(lawCli, admin);
+      case AdminConfigureSignerMenuChoice.Back:
+        await LawCli.handleAdminSettingsMenu(lawCli);
         break;
     }
   }
 
-  private static async handleManageToolsMenu(
-    lawCli: LawCli,
-    admin: Admin,
-    pkp: PkpInfo
-  ) {
+  private static async handleManageToolsMenu(lawCli: LawCli, pkp: PkpInfo) {
     const option = await handleManageToolsMenu();
 
     switch (option) {
       case ManageToolsMenuChoice.GetRegisteredTools:
-        await handleGetTools(admin, pkp);
-        await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
+        await handleGetTools(lawCli.admin!, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, pkp);
         break;
       case ManageToolsMenuChoice.PermitTool:
-        await handlePermitTool(admin, pkp);
-        await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
+        await handlePermitTool(lawCli.admin!, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, pkp);
         break;
       case ManageToolsMenuChoice.RemoveTool:
-        await handleRemoveTool(admin, pkp);
-        await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
+        await handleRemoveTool(lawCli.admin!, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, pkp);
         break;
       case ManageToolsMenuChoice.EnableTool:
-        await handleEnableTool(admin, pkp);
-        await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
+        await handleEnableTool(lawCli.admin!, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, pkp);
         break;
       case ManageToolsMenuChoice.DisableTool:
-        await handleDisableTool(admin, pkp);
-        await LawCli.handleManageToolsMenu(lawCli, admin, pkp);
+        await handleDisableTool(lawCli.admin!, pkp);
+        await LawCli.handleManageToolsMenu(lawCli, pkp);
         break;
       case ManageToolsMenuChoice.Back:
-        await LawCli.handleAdminMenu(lawCli, admin, pkp);
+        await LawCli.handleAdminMenu(lawCli);
         break;
     }
   }
 
-  private static async handleManagePoliciesMenu(
-    lawCli: LawCli,
-    admin: Admin,
-    pkp: PkpInfo
-  ) {
+  private static async handleManagePoliciesMenu(lawCli: LawCli, pkp: PkpInfo) {
     const option = await handleManagePoliciesMenu();
 
     switch (option) {
       case ManagePoliciesMenuChoice.GetAllPolicies:
-        await handleGetPolicies(admin, pkp);
-        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        await handleGetPolicies(lawCli.admin!, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, pkp);
         break;
       case ManagePoliciesMenuChoice.GetToolPolicy:
-        await handleGetToolPolicy(admin, pkp);
-        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        await handleGetToolPolicy(lawCli.admin!, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, pkp);
         break;
       case ManagePoliciesMenuChoice.SetPolicy:
-        await handleSetPolicy(admin, pkp);
-        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        await handleSetPolicy(lawCli.admin!, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, pkp);
         break;
       case ManagePoliciesMenuChoice.RemovePolicy:
-        await handleRemovePolicy(admin, pkp);
-        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        await handleRemovePolicy(lawCli.admin!, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, pkp);
         break;
       case ManagePoliciesMenuChoice.EnablePolicy:
-        await handleEnablePolicy(admin, pkp);
-        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        await handleEnablePolicy(lawCli.admin!, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, pkp);
         break;
       case ManagePoliciesMenuChoice.DisablePolicy:
-        await handleDisablePolicy(admin, pkp);
-        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        await handleDisablePolicy(lawCli.admin!, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, pkp);
         break;
       case ManagePoliciesMenuChoice.GetPolicyParameter:
-        await handleGetToolPolicyParameter(admin, pkp);
-        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        await handleGetToolPolicyParameter(lawCli.admin!, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, pkp);
         break;
       case ManagePoliciesMenuChoice.SetPolicyParameter:
-        await handleSetToolPolicyParameter(admin, pkp);
-        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        await handleSetToolPolicyParameter(lawCli.admin!, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, pkp);
         break;
       case ManagePoliciesMenuChoice.RemovePolicyParameter:
-        await handleRemoveToolPolicyParameter(admin, pkp);
-        await LawCli.handleManagePoliciesMenu(lawCli, admin, pkp);
+        await handleRemoveToolPolicyParameter(lawCli.admin!, pkp);
+        await LawCli.handleManagePoliciesMenu(lawCli, pkp);
         break;
       case ManagePoliciesMenuChoice.Back:
-        await LawCli.handleAdminMenu(lawCli, admin, pkp);
+        await LawCli.handleAdminMenu(lawCli);
         break;
     }
   }
 
   private static async handleManageDelegateesMenu(
     lawCli: LawCli,
-    admin: Admin,
     pkp: PkpInfo
   ) {
     const option = await handleManageDelegateesMenu();
 
     switch (option) {
       case ManageDelegateesMenuChoice.GetDelegatees:
-        await handleGetDelegatees(admin, pkp);
-        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        await handleGetDelegatees(lawCli.admin!, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, pkp);
         break;
       case ManageDelegateesMenuChoice.IsDelegatee:
-        await handleIsDelegatee(admin, pkp);
-        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        await handleIsDelegatee(lawCli.admin!, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, pkp);
         break;
       case ManageDelegateesMenuChoice.AddDelegatee:
-        await handleAddDelegatee(admin, pkp);
-        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        await handleAddDelegatee(lawCli.admin!, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, pkp);
         break;
       case ManageDelegateesMenuChoice.RemoveDelegatee:
-        await handleRemoveDelegatee(admin, pkp);
-        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        await handleRemoveDelegatee(lawCli.admin!, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, pkp);
         break;
       case ManageDelegateesMenuChoice.PermitTool:
-        await handlePermitToolForDelegatee(admin, pkp);
-        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        await handlePermitToolForDelegatee(lawCli.admin!, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, pkp);
         break;
       case ManageDelegateesMenuChoice.UnpermitTool:
-        await handleUnpermitToolForDelegatee(admin, pkp);
-        await LawCli.handleManageDelegateesMenu(lawCli, admin, pkp);
+        await handleUnpermitToolForDelegatee(lawCli.admin!, pkp);
+        await LawCli.handleManageDelegateesMenu(lawCli, pkp);
         break;
       case ManageDelegateesMenuChoice.Back:
-        await LawCli.handleAdminMenu(lawCli, admin, pkp);
+        await LawCli.handleAdminMenu(lawCli);
+        break;
+    }
+  }
+
+  private static async handleDelegateeMenu(
+    lawCli: LawCli,
+    pkp?: DelegatedPkpInfo
+  ) {
+    const option = await handleDelegateeMenu(lawCli.delegatee, pkp);
+
+    switch (option) {
+      case DelegateeMenuChoice.DelegateeSettings:
+        await LawCli.handleDelegateeSettingsMenu(lawCli);
+        break;
+      case DelegateeMenuChoice.SelectPkp: {
+        const selectedPkp = await LawCli.handleSelectDelegatedPkp(lawCli);
+        await LawCli.handleDelegateeMenu(lawCli, selectedPkp);
+        break;
+      }
+      case DelegateeMenuChoice.GetDelegatedPkps:
+        await handleGetDelegatedPkps(lawCli.delegatee!);
+        await LawCli.handleDelegateeMenu(lawCli, pkp);
+        break;
+      case DelegateeMenuChoice.GetRegisteredTools:
+        if (pkp === undefined) {
+          pkp = await LawCli.handleSelectDelegatedPkp(lawCli);
+        }
+        await handleGetRegisteredTools(lawCli.delegatee!, pkp);
+        await LawCli.handleDelegateeMenu(lawCli, pkp);
+        break;
+      case DelegateeMenuChoice.GetToolPolicy:
+        if (pkp === undefined) {
+          pkp = await LawCli.handleSelectDelegatedPkp(lawCli);
+        }
+        await handleGetToolPolicyForDelegatee(lawCli.delegatee!, pkp);
+        await LawCli.handleDelegateeMenu(lawCli, pkp);
+        break;
+      case DelegateeMenuChoice.GetToolViaIntent:
+        if (pkp === undefined) {
+          pkp = await LawCli.handleSelectDelegatedPkp(lawCli);
+        }
+
+        if (lawCli.delegatee!.intentMatcher === null) {
+          const intentMatcher = await handleGetIntentMatcher(lawCli.delegatee!);
+          lawCli.delegatee!.setIntentMatcher(intentMatcher);
+        }
+
+        await handleGetToolViaIntent(lawCli.delegatee!, pkp);
+        await LawCli.handleDelegateeMenu(lawCli, pkp);
+        break;
+      case DelegateeMenuChoice.ExecuteToolViaIntent:
+        break;
+      case DelegateeMenuChoice.ExecuteTool:
+        break;
+      case DelegateeMenuChoice.Back:
+        await LawCli.showMainMenu(lawCli);
+        break;
+    }
+  }
+
+  private static async handleDelegateeSettingsMenu(lawCli: LawCli) {
+    const option = await handleDelegateeSettingsMenu();
+
+    switch (option) {
+      case DelegateeSettingsMenuChoice.ConfigureSigner:
+        await LawCli.handleConfigureDelegateeSignerMenu(lawCli);
+        break;
+      case DelegateeSettingsMenuChoice.Back:
+        await LawCli.handleDelegateeMenu(lawCli);
+        break;
+    }
+  }
+
+  private static async handleConfigureDelegateeSignerMenu(lawCli: LawCli) {
+    const signerOption = await handleConfigureDelegateeSignerMenu();
+
+    switch (signerOption) {
+      case DelegateeConfigureSignerMenuChoice.UseEoa:
+        lawCli.delegatee = await handleUseEoaForDelegatee(lawCli.localStorage);
+        await LawCli.handleDelegateeMenu(lawCli);
+        break;
+      case DelegateeConfigureSignerMenuChoice.UsePkp:
+        break;
+      case DelegateeConfigureSignerMenuChoice.Back:
+        await LawCli.handleDelegateeSettingsMenu(lawCli);
         break;
     }
   }

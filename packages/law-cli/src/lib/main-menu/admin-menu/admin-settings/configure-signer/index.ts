@@ -1,2 +1,5 @@
-export { ConfigureSignerMenuChoice, handleConfigureSignerMenu } from './menu';
-export { handleUseEoa } from './use-eoa';
+export {
+  AdminConfigureSignerMenuChoice,
+  handleConfigureAdminSignerMenu,
+} from './menu';
+export { handleUseEoaForAdmin } from './use-eoa';

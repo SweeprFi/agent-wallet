@@ -47,7 +47,7 @@ const promptSelectOrMintPkp = async (
   return selection;
 };
 
-export const handleSelectPkp = async (
+export const handleSelectPkpForAdmin = async (
   admin: Admin
 ): Promise<PkpInfo | null> => {
   try {

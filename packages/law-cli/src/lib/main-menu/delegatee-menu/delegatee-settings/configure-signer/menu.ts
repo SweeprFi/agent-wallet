@@ -2,7 +2,7 @@ import prompts from 'prompts';
 
 import { LawCliError, GeneralErrors, logger } from '../../../../core';
 
-export enum AdminConfigureSignerMenuChoice {
+export enum DelegateeConfigureSignerMenuChoice {
   UseEoa = 'useEoa',
   UseMultiSig = 'useMultiSig',
   UsePkp = 'usePkp',
@@ -15,8 +15,13 @@ export enum AdminSignerType {
   Pkp = 'pkp',
 }
 
+export enum DelegateeSignerType {
+  Eoa = 'eoa',
+  Pkp = 'pkp',
+}
+
 const promptConfigureSignerMenu =
-  async (): Promise<AdminConfigureSignerMenuChoice> => {
+  async (): Promise<DelegateeConfigureSignerMenuChoice> => {
     const { action } = await prompts({
       type: 'select',
       name: 'action',
@@ -24,19 +29,14 @@ const promptConfigureSignerMenu =
       choices: [
         {
           title: 'Use EOA',
-          value: AdminConfigureSignerMenuChoice.UseEoa,
-        },
-        {
-          title: 'Use MultiSig',
-          value: AdminConfigureSignerMenuChoice.UseMultiSig,
-          disabled: true,
+          value: DelegateeConfigureSignerMenuChoice.UseEoa,
         },
         {
           title: 'Use Pkp',
-          value: AdminConfigureSignerMenuChoice.UsePkp,
+          value: DelegateeConfigureSignerMenuChoice.UsePkp,
           disabled: true,
         },
-        { title: 'Back', value: AdminConfigureSignerMenuChoice.Back },
+        { title: 'Back', value: DelegateeConfigureSignerMenuChoice.Back },
       ],
     });
 
@@ -47,18 +47,18 @@ const promptConfigureSignerMenu =
       );
     }
 
-    return action as AdminConfigureSignerMenuChoice;
+    return action as DelegateeConfigureSignerMenuChoice;
   };
 
-export const handleConfigureAdminSignerMenu =
-  async (): Promise<AdminConfigureSignerMenuChoice> => {
+export const handleConfigureDelegateeSignerMenu =
+  async (): Promise<DelegateeConfigureSignerMenuChoice> => {
     try {
       return promptConfigureSignerMenu();
     } catch (error) {
       if (error instanceof LawCliError) {
         if (error.type === GeneralErrors.NO_ACTION_SELECTED) {
           logger.error(error.message);
-          return await handleConfigureAdminSignerMenu();
+          return await handleConfigureDelegateeSignerMenu();
         }
       }
       throw error;

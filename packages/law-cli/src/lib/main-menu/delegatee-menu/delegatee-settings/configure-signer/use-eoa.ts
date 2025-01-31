@@ -5,24 +5,24 @@ import {
   LocalStorage,
   StorageKeys,
   LawCliError,
-  AdminErrors,
   logger,
   getLitNetwork,
+  DelegateeErrors,
 } from '../../../../core';
-import { AdminSignerType } from './menu';
-import { Admin } from '../../admin';
+import { DelegateeSignerType } from './menu';
+import { Delegatee } from '../../delegatee';
 
-type AdminStorageLayout = {
+type DelegateeStorageLayout = {
   [ethAddress: string]: {
     privateKey: string;
   };
 };
 
-const promptSelectAdmin = async (
+const promptSelectDelegatee = async (
   localStorage: LocalStorage
 ): Promise<{ address: string; privateKey: string } | null> => {
-  const admins = getStoredAdmins(localStorage);
-  const addresses = Object.keys(admins);
+  const delegatees = getStoredDelegatees(localStorage);
+  const addresses = Object.keys(delegatees);
 
   if (addresses.length === 0) {
     return null;
@@ -42,14 +42,14 @@ const promptSelectAdmin = async (
   const { selection } = await prompts({
     type: 'select',
     name: 'selection',
-    message: 'Select an admin wallet or add a new one:',
+    message: 'Select a delegatee wallet or add a new one:',
     choices,
   });
 
   if (!selection) {
     throw new LawCliError(
-      AdminErrors.ADMIN_SELECTION_CANCELLED,
-      'Admin selection cancelled.'
+      DelegateeErrors.DELEGATEE_SELECTION_CANCELLED,
+      'Delegatee selection cancelled.'
     );
   }
 
@@ -59,7 +59,7 @@ const promptSelectAdmin = async (
 
   return {
     address: selection,
-    privateKey: admins[selection].privateKey,
+    privateKey: delegatees[selection].privateKey,
   };
 };
 
@@ -79,7 +79,7 @@ const promptPrivateKey = async (): Promise<string> => {
 
   if (!privateKey) {
     throw new LawCliError(
-      AdminErrors.ADMIN_MISSING_PRIVATE_KEY,
+      DelegateeErrors.DELEGATEE_MISSING_PRIVATE_KEY,
       'No private key provided. Operation cancelled.'
     );
   }
@@ -87,65 +87,73 @@ const promptPrivateKey = async (): Promise<string> => {
   return privateKey;
 };
 
-const getStoredAdmins = (localStorage: LocalStorage): AdminStorageLayout => {
-  const storedData = localStorage.getItem(StorageKeys.ADMIN_STORAGE);
+const getStoredDelegatees = (
+  localStorage: LocalStorage
+): DelegateeStorageLayout => {
+  const storedData = localStorage.getItem(StorageKeys.DELEGATEE_STORAGE);
   return storedData ? JSON.parse(storedData) : {};
 };
 
-const saveAdmin = (
+const saveDelegatee = (
   localStorage: LocalStorage,
   address: string,
   privateKey: string
 ) => {
-  const admins = getStoredAdmins(localStorage);
-  admins[address] = {
+  const delegatees = getStoredDelegatees(localStorage);
+  delegatees[address] = {
     privateKey,
   };
-  localStorage.setItem(StorageKeys.ADMIN_STORAGE, JSON.stringify(admins));
+  localStorage.setItem(
+    StorageKeys.DELEGATEE_STORAGE,
+    JSON.stringify(delegatees)
+  );
 };
 
-export const handleUseEoaForAdmin = async (
+export const handleUseEoaForDelegatee = async (
   localStorage: LocalStorage
-): Promise<Admin> => {
+): Promise<Delegatee> => {
   try {
-    // First check if we have any stored admins
-    const existingAdmin = await promptSelectAdmin(localStorage);
+    // First check if we have any stored delegatees
+    const existingDelegatee = await promptSelectDelegatee(localStorage);
     let privateKey: string;
     let address: string;
 
-    if (existingAdmin) {
-      privateKey = existingAdmin.privateKey;
-      address = existingAdmin.address;
+    if (existingDelegatee) {
+      privateKey = existingDelegatee.privateKey;
+      address = existingDelegatee.address;
     } else {
       privateKey = await promptPrivateKey();
       // Create wallet to get address
       const wallet = new ethers.Wallet(privateKey);
       address = wallet.address;
-      // Save new admin
-      saveAdmin(localStorage, address, privateKey);
+      // Save new delegatee
+      saveDelegatee(localStorage, address, privateKey);
     }
 
-    // Set the current active admin
-    localStorage.setItem(StorageKeys.ADMIN_ACTIVE_ADDRESS, address);
-    localStorage.setItem(StorageKeys.ADMIN_SIGNER_TYPE, AdminSignerType.Eoa);
+    // Set the current active delegatee
+    localStorage.setItem(StorageKeys.DELEGATEE_ACTIVE_ADDRESS, address);
+    localStorage.setItem(
+      StorageKeys.DELEGATEE_SIGNER_TYPE,
+      DelegateeSignerType.Eoa
+    );
 
     const litNetwork = await getLitNetwork(localStorage);
-    const awAdmin = await Admin.create(litNetwork, privateKey);
+    const awDelegatee = await Delegatee.create(litNetwork, privateKey);
 
     logger.success(
       `EOA signer configured successfully with address: ${address}`
     );
 
-    return awAdmin;
+    return awDelegatee;
   } catch (error) {
     if (error instanceof LawCliError) {
       if (
-        error.type === AdminErrors.ADMIN_MISSING_PRIVATE_KEY ||
-        error.type === AdminErrors.FAILED_TO_INITIALIZE_ADMIN ||
-        error.type === AdminErrors.ADMIN_SELECTION_CANCELLED
+        error.type === DelegateeErrors.DELEGATEE_MISSING_PRIVATE_KEY ||
+        error.type === DelegateeErrors.FAILED_TO_INITIALIZE_DELEGATEE ||
+        error.type === DelegateeErrors.DELEGATEE_SELECTION_CANCELLED
       ) {
         logger.error(error.message);
-        return await handleUseEoaForAdmin(localStorage);
+        return await handleUseEoaForDelegatee(localStorage);
       }
     }
     throw error;

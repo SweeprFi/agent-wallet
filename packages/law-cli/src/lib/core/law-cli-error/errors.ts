@@ -154,6 +154,17 @@ export enum RemoveToolPolicyParameterErrors {
   FAILED = 'FAILED',
 }
 
+export enum DelegateeErrors {
+  DELEGATEE_SELECTION_CANCELLED = 'DELEGATEE_SELECTION_CANCELLED',
+  DELEGATEE_MISSING_PRIVATE_KEY = 'DELEGATEE_MISSING_PRIVATE_KEY',
+  FAILED_TO_INITIALIZE_DELEGATEE = 'FAILED_TO_INITIALIZE_DELEGATEE',
+  NO_DELEGATED_PKPS = 'NO_DELEGATED_PKPS',
+  NO_TOOLS_WITH_POLICIES = 'NO_TOOLS_WITH_POLICIES',
+  TOOL_SELECTION_CANCELLED = 'TOOL_SELECTION_CANCELLED',
+  GET_TOOL_VIA_INTENT_CANCELLED = 'GET_TOOL_VIA_INTENT_CANCELLED',
+  GET_INTENT_MATCHER_CANCELLED = 'GET_INTENT_MATCHER_CANCELLED',
+}
+
 // Combined type for all errors
 export type LawCliErrorType =
   | GetLitNetworkErrors
@@ -185,4 +196,5 @@ export type LawCliErrorType =
   | UnpermitToolForDelegateeErrors
   | GetToolPolicyParameterErrors
   | SetToolPolicyParameterErrors
-  | RemoveToolPolicyParameterErrors;
+  | RemoveToolPolicyParameterErrors
+  | DelegateeErrors;
