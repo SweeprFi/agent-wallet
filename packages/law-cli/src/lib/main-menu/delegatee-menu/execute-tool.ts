@@ -51,15 +51,23 @@ const promptSelectTool = async (
 /**
  * Prompts the user to input parameters for a tool.
  */
-const promptToolParams = async <T extends Record<string, any>>(
+export const promptToolParams = async <T extends Record<string, any>>(
   tool: AwTool<T, any>,
-  pkpEthAddress: string
+  pkpEthAddress: string,
+  options?: {
+    missingParams?: Array<keyof T>;
+    foundParams?: Partial<T>;
+  }
 ): Promise<T> => {
-  const params: Record<string, any> = {};
+  const params: Record<string, any> = { ...options?.foundParams };
 
-  for (const [paramName, description] of Object.entries(
-    tool.parameters.descriptions
-  )) {
+  const paramsToPrompt = options?.missingParams
+    ? Object.entries(tool.parameters.descriptions).filter(([paramName]) =>
+        options.missingParams?.includes(paramName as keyof T)
+      )
+    : Object.entries(tool.parameters.descriptions);
+
+  for (const [paramName, description] of paramsToPrompt) {
     if (paramName === 'pkpEthAddress') {
       params.pkpEthAddress = pkpEthAddress;
       continue;

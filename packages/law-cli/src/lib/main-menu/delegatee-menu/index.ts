@@ -7,5 +7,6 @@ export { handleGetToolPolicyForDelegatee } from './get-tool-policy';
 export { handleGetToolViaIntent } from './get-tool-via-intent';
 export { handleGetIntentMatcher } from './get-intent-matcher';
 export { handleExecuteTool } from './execute-tool';
+export { handleExecuteToolViaIntent } from './execute-tool-via-intent';
 
 export * from './delegatee-settings';

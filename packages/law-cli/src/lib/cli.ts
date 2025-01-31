@@ -75,6 +75,7 @@ import {
   handleGetToolViaIntent,
   handleGetIntentMatcher,
   handleExecuteTool,
+  handleExecuteToolViaIntent,
 } from './main-menu';
 
 export class LawCli {
@@ -474,6 +475,17 @@ export class LawCli {
         await LawCli.handleDelegateeMenu(lawCli, pkp);
         break;
       case DelegateeMenuChoice.ExecuteToolViaIntent:
+        if (pkp === undefined) {
+          pkp = await LawCli.handleSelectDelegatedPkp(lawCli);
+        }
+
+        if (lawCli.delegatee!.intentMatcher === null) {
+          const intentMatcher = await handleGetIntentMatcher(lawCli.delegatee!);
+          lawCli.delegatee!.setIntentMatcher(intentMatcher);
+        }
+
+        await handleExecuteToolViaIntent(lawCli.delegatee!, pkp);
+        await LawCli.handleDelegateeMenu(lawCli, pkp);
         break;
       case DelegateeMenuChoice.ExecuteTool:
         if (pkp === undefined) {
