@@ -360,6 +360,9 @@ importers:
       '@lit-protocol/constants':
         specifier: 7.0.2
         version: 7.0.2(typescript@5.7.2)
+      '@lit-protocol/types':
+        specifier: ^7.0.2
+        version: 7.0.2
       ethers:
         specifier: v5
         version: 5.7.2

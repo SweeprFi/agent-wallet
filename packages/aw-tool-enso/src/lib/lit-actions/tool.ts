@@ -4,7 +4,7 @@ import {
   getPkpToolRegistryContract,
   NETWORK_CONFIG,
 } from '@lit-protocol/aw-tool';
-import { ENSO_API_KEY, ENSO_ETH, ENSO_SUPPORTED_CHAINS } from 'src/constants';
+import { ENSO_API_KEY, ENSO_ETH, ENSO_SUPPORTED_CHAINS } from '../../constants';
 import { getToken } from './utils/get-token';
 import { EnsoClient } from '@ensofinance/sdk';
 import { parseUnits } from 'ethers/lib/utils';
@@ -39,7 +39,7 @@ declare global {
           .pubkeyRouterAddress
       }`
     );
-    if (ENSO_SUPPORTED_CHAINS.has(Number(params.chainId))) {
+    if (!ENSO_SUPPORTED_CHAINS.has(Number(params.chainId))) {
       throw new Error(`ChainId ${params.chainId} is not supported by Enso`);
     }
 
@@ -140,7 +140,7 @@ declare global {
     }
 
     const gasData = await getGasData(provider, pkp.ethAddress);
-    const routeTx = createRouteTx(routeData, gasData, chainId);
+    const routeTx = await createRouteTx(routeData, gasData, params.chainId);
     const signedRouteTx = await signTx(pkp.publicKey, routeTx, 'erc20RouteSig');
     const routeHash = await broadcastTransaction(provider, signedRouteTx);
     console.log('Route transaction hash', routeHash);
