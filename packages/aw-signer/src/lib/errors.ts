@@ -33,6 +33,12 @@ export enum AwSignerErrorType {
 
   /** Indicates a failure to retrieve an item from storage. */
   STORAGE_FAILED_TO_GET_ITEM = 'STORAGE_FAILED_TO_GET_ITEM',
+
+  /** Indicates that the Admin role was not found. */
+  ADMIN_NOT_FOUND = 'ADMIN_NOT_FOUND',
+
+  /** Indicates that the Admin address does not match the expected address. */
+  ADMIN_ADDRESS_MISMATCH = 'ADMIN_ADDRESS_MISMATCH',
 }
 
 /**

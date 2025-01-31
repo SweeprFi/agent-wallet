@@ -2,6 +2,7 @@ import { config } from '@dotenvx/dotenvx';
 import { ethers } from 'ethers';
 import fs from 'fs';
 import path from 'path';
+import { getToolByName } from '@lit-protocol/aw-tool-registry';
 
 import { Admin } from '../../src/lib/admin';
 import { PkpInfo } from '../../src/lib/types';
@@ -21,9 +22,8 @@ if (!PRIVATE_KEY) {
  */
 
 describe('Admin E2E', () => {
-  const STORAGE_PATH = path.join(__dirname, '../../.aw-signer-admin-storage');
-  const ERC20_TRANSFER_TOOL_IPFS_CID =
-    'QmPBePemi154H73LDfK974nDDDfNU3CfUShtYMcLCA4sy6';
+  const STORAGE_PATH = path.join(__dirname, '../../.law-signer-admin-storage');
+  const LIT_NETWORK = 'datil-test';
   const DELEGATEE_1 = ethers.Wallet.createRandom().address;
   //   const DELEGATEE_2 = ethers.Wallet.createRandom().address;
   const POLICY_IPFS_CID = 'QmTestPolicyIpfsCid';
@@ -35,13 +35,21 @@ describe('Admin E2E', () => {
   const TEST_PARAM_VALUE_HEX = ethers.utils.hexlify(TEST_PARAM_VALUE_BYTES);
   const TEST_PARAM_VALUE_2_HEX = ethers.utils.hexlify(TEST_PARAM_VALUE_2_BYTES);
 
+  const ERC20_TRANSFER_TOOL_IPFS_CID = getToolByName(
+    'ERC20Transfer',
+    LIT_NETWORK
+  )?.ipfsCid;
+  if (!ERC20_TRANSFER_TOOL_IPFS_CID) {
+    throw new Error('ERC20Transfer tool not found');
+  }
+
   let admin: Admin;
 
   beforeAll(async () => {
     // Create Admin instance with real network connections
     admin = await Admin.create(
       { type: 'eoa', privateKey: PRIVATE_KEY },
-      { litNetwork: 'datil-test' }
+      { litNetwork: LIT_NETWORK }
     );
   }, 30000); // Increase timeout for network connections
 
@@ -499,11 +507,9 @@ describe('Admin E2E', () => {
       );
 
       expect(parameters).toBeDefined();
-      expect(parameters.length).toBe(2);
-      expect(parameters[0].name).toBe(TEST_PARAM_NAME);
-      expect(parameters[0].value).toBe('0x');
-      expect(parameters[1].name).toBe(TEST_PARAM_NAME_2);
-      expect(parameters[1].value).toBe(TEST_PARAM_VALUE_2_HEX);
+      expect(parameters.length).toBe(1);
+      expect(parameters[0].name).toBe(TEST_PARAM_NAME_2);
+      expect(parameters[0].value).toBe(TEST_PARAM_VALUE_2_HEX);
     }, 60000);
 
     it('should remove the policy for a specific tool and delegatee', async () => {

@@ -1,5 +1,6 @@
 import { config } from '@dotenvx/dotenvx';
 import { LIT_RPC } from '@lit-protocol/constants';
+import { getToolByName } from '@lit-protocol/aw-tool-registry';
 import { ethers } from 'ethers';
 import fs from 'fs';
 import path from 'path';
@@ -32,15 +33,21 @@ const DELEGATEE_ADDRESS = DELEGATEE_WALLET.address;
 describe('Delegatee E2E', () => {
   const ADMIN_STORAGE_PATH = path.join(
     __dirname,
-    '../../.aw-signer-admin-storage'
+    '../../.law-signer-admin-storage'
   );
   const DELEGATEE_STORAGE_PATH = path.join(
     __dirname,
-    '../../.aw-signer-delegatee-storage'
+    '../../.law-signer-delegatee-storage'
   );
-  const ERC20_TRANSFER_TOOL_IPFS_CID =
-    'QmdaabYYC3oDsNho3cJEYPuK62xpCmMrbhN9FmVnjBYpk2';
   const POLICY_IPFS_CID = 'QmTestPolicyIpfsCid';
+  const LIT_NETWORK = 'datil-test';
+  const ERC20_TRANSFER_TOOL_IPFS_CID = getToolByName(
+    'ERC20Transfer',
+    LIT_NETWORK
+  )?.ipfsCid;
+  if (!ERC20_TRANSFER_TOOL_IPFS_CID) {
+    throw new Error('ERC20Transfer tool not found');
+  }
 
   let admin: Admin;
   let delegatee: Delegatee;
@@ -49,7 +56,7 @@ describe('Delegatee E2E', () => {
     // Create Admin instance with real network connections
     admin = await Admin.create(
       { type: 'eoa', privateKey: ADMIN_PRIVATE_KEY },
-      { litNetwork: 'datil-test' }
+      { litNetwork: LIT_NETWORK }
     );
 
     // Send 0.00000001 ETH to delegatee from admin
@@ -61,7 +68,7 @@ describe('Delegatee E2E', () => {
 
     // Create Admin instance with real network connections
     delegatee = await Delegatee.create(DELEGATEE_WALLET.privateKey, {
-      litNetwork: 'datil-test',
+      litNetwork: LIT_NETWORK,
     });
   }, 30000); // Increase timeout for network connections
 
@@ -265,7 +272,7 @@ describe('Delegatee E2E', () => {
               encode: expect.any(Function),
               decode: expect.any(Function),
             }),
-            network: 'datil-test',
+            network: LIT_NETWORK,
             toolEnabled: true,
             delegatee: DELEGATEE_ADDRESS,
             policyIpfsCid: POLICY_IPFS_CID,

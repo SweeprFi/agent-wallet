@@ -2,7 +2,7 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
     "./packages/agent-wallet/src/index.ts",
-    "./packages/aw-cli/src/index.ts",
+    "./packages/law-cli/src/index.ts",
     "./packages/aw-signer/src/index.ts",
     "./packages/aw-tool/src/index.ts",
     "./packages/aw-tool-erc20-transfer/src/index.ts",
@@ -27,4 +27,4 @@
     "invalidLink": false,
     "notDocumented": false
   }
-} 
+}
