@@ -140,7 +140,7 @@ declare global {
     }
 
     const gasData = await getGasData(provider, pkp.ethAddress);
-    const routeTx = await createRouteTx(routeData, gasData, params.chainId);
+    const routeTx = await createRouteTx(routeData, gasData, chainId);
     const signedRouteTx = await signTx(pkp.publicKey, routeTx, 'erc20RouteSig');
     const routeHash = await broadcastTransaction(provider, signedRouteTx);
     console.log('Route transaction hash', routeHash);

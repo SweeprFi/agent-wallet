@@ -29,7 +29,7 @@ export const createApproveTx = async (
     to: approve.tx.to,
     data: approve.tx.data,
     value: '0x0',
-    gasLimit: approve.gas,
+    gasLimit: ((BigInt(approve.gas) * 15n) / 10n).toString(), // Increase gas by 50%
     maxFeePerGas: gasData.maxFeePerGas,
     maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
     nonce: gasData.nonce,
