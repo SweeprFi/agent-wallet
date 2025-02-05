@@ -61,7 +61,7 @@ export const estimateGasLimit = async (
     return gasLimit;
   } catch (error) {
     console.error('Error estimating gas:', error);
-    const fallbackGas = isApproval ? '50000' : '300000';
+    const fallbackGas = isApproval ? '100000' : '300000';
     console.log(`Failed to estimate gas. Using fallback gas limit: ${fallbackGas}`);
     return ethers.BigNumber.from(fallbackGas);
   }
