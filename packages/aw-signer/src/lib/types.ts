@@ -2,6 +2,7 @@ import { LIT_NETWORK } from '@lit-protocol/constants';
 import { type AwTool } from '@lit-protocol/aw-tool';
 import type { ethers } from 'ethers';
 import type { getToolByIpfsCid } from '@lit-protocol/aw-tool-registry';
+import { StoredKeyData } from '@lit-protocol/wrapped-keys';
 
 /**
  * Represents the Lit network environment.
@@ -310,3 +311,7 @@ export type ToolInfoWithDelegateePolicy = {
   policyIpfsCid: string;
   policyEnabled: boolean;
 };
+
+export interface WrappedKeyInfo extends StoredKeyData {
+  // Additional fields if needed
+}

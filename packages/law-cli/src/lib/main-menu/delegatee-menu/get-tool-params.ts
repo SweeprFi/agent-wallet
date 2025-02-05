@@ -1,10 +1,15 @@
-import { AwTool } from '@lit-protocol/agent-wallet';
+import { type AwTool } from '@lit-protocol/agent-wallet';
 import prompts from 'prompts';
 import { LawCliError, DelegateeErrors, LocalStorage } from '../../core';
 import { promptSelectChain } from './get-chain-details';
 
 /**
- * Prompts the user to input parameters for a tool.
+ * Prompts the user for tool parameters.
+ * @param localStorage - The local storage instance.
+ * @param tool - The tool to get parameters for.
+ * @param pkpEthAddress - The PKP's Ethereum address.
+ * @param options - Optional parameters for controlling the prompts.
+ * @returns A promise that resolves to an object containing the tool parameters.
  */
 export const getToolParams = async <T extends Record<string, any>>(
   localStorage: LocalStorage,
@@ -53,8 +58,15 @@ export const getToolParams = async <T extends Record<string, any>>(
 
   // Handle remaining parameters
   for (const [paramName, description] of paramsToPrompt) {
-    if (paramName === 'pkpEthAddress') {
-      params.pkpEthAddress = pkpEthAddress;
+    // Skip pkpEthAddress, ciphertext, and dataToEncryptHash as they're handled elsewhere
+    if (paramName === 'pkpEthAddress' || 
+        paramName === 'ciphertext' || 
+        paramName === 'dataToEncryptHash') {
+      continue;
+    }
+
+    // If we already have this parameter in foundParams, skip it
+    if (options?.foundParams && paramName in options.foundParams) {
       continue;
     }
 
@@ -72,6 +84,11 @@ export const getToolParams = async <T extends Record<string, any>>(
     }
 
     params[paramName] = value;
+  }
+
+  // Set pkpEthAddress if not already set
+  if (!params.pkpEthAddress) {
+    params.pkpEthAddress = pkpEthAddress;
   }
 
   const validationResult = tool.parameters.validate(params);

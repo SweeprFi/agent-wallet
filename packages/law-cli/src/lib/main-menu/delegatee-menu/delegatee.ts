@@ -5,9 +5,12 @@ import {
   LitNetwork,
   type IntentMatcher,
 } from '@lit-protocol/agent-wallet';
+import { LocalStorage } from 'node-localstorage';
 
 import { logger } from '../../core';
 import { promptDelegateeInsufficientBalance } from './insuffcient-balance';
+
+const adminStorage = new LocalStorage('./.law-signer-admin-storage');
 
 export class Delegatee {
   public awDelegatee: AwDelegatee;
@@ -87,5 +90,21 @@ export class Delegatee {
 
   public disconnect() {
     this.awDelegatee.disconnect();
+  }
+
+  /**
+   * Gets all wrapped keys from storage.
+   * @returns A promise that resolves to an array of wrapped keys.
+   */
+  public async getWrappedKeys(): Promise<any[]> {
+    const wks = adminStorage.getItem('wks');
+    if (!wks) {
+      return [];
+    }
+    try {
+      return JSON.parse(wks);
+    } catch (error) {
+      throw new Error('Failed to parse wrapped keys from storage');
+    }
   }
 }

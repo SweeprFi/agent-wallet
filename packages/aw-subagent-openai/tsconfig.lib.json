@@ -13,10 +13,13 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../aw-tool-sign-ecdsa/tsconfig.lib.json"
+      "path": "../aw-tool-uniswap-swap/tsconfig.lib.json"
     },
     {
-      "path": "../aw-tool-uniswap-swap/tsconfig.lib.json"
+      "path": "../aw-tool-sign-eddsa/tsconfig.lib.json"
+    },
+    {
+      "path": "../aw-tool-sign-ecdsa/tsconfig.lib.json"
     },
     {
       "path": "../aw-tool-erc20-transfer/tsconfig.lib.json"

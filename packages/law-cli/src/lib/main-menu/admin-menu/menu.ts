@@ -10,6 +10,7 @@ export enum AdminMenuChoice {
   ManageTools = 'manageTools',
   ManagePolicies = 'managePolicies',
   ManageDelegatees = 'manageDelegatees',
+  ManageWrappedKeys = 'manageWrappedKeys',
   Back = 'back',
 }
 
@@ -54,6 +55,11 @@ const promptAdminMenu = async (
       {
         title: 'Manage Delegatees',
         value: AdminMenuChoice.ManageDelegatees,
+        disabled: disableManageOptions,
+      },
+      {
+        title: 'Manage Wrapped Keys',
+        value: AdminMenuChoice.ManageWrappedKeys,
         disabled: disableManageOptions,
       },
       { title: 'Back', value: AdminMenuChoice.Back },

@@ -9,6 +9,7 @@ export enum StorageKeys {
   DELEGATEE_STORAGE = 'delegateeStorage',
   DELEGATEE_ACTIVE_ADDRESS = 'delegateeActiveAddress',
   DELEGATEE_SIGNER_TYPE = 'delegateeSignerType',
+  WRAPPED_KEY_DATA = 'WRAPPED_KEY_DATA',
 }
 
 export class LocalStorage {

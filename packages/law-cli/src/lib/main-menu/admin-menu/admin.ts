@@ -2,6 +2,22 @@ import { Admin as AwAdmin, type LitNetwork } from '@lit-protocol/agent-wallet';
 
 import { AdminErrors, LawCliError, logger } from '../../core';
 
+// Define the shape of a wrapped key
+export interface WrappedKeyInfo {
+  id: string;
+  publicKey: string;
+  keyType: string;
+  memo: string;
+}
+
+// Define the shape of the wrapped key methods that exist on AwAdmin
+interface WrappedKeyMethods {
+  getWrappedKeys(): Promise<WrappedKeyInfo[]>;
+  getWrappedKeyById(id: string): Promise<WrappedKeyInfo>;
+  removeWrappedKey(id: string): Promise<WrappedKeyInfo>;
+  mintWrappedKey(pkpTokenId: string): Promise<WrappedKeyInfo>;
+}
+
 export class Admin {
   public awAdmin: AwAdmin;
 
@@ -11,6 +27,43 @@ export class Admin {
    */
   private constructor(awAdmin: AwAdmin) {
     this.awAdmin = awAdmin;
+  }
+
+  /**
+   * Gets all wrapped keys from storage.
+   * @returns A promise that resolves to an array of wrapped keys.
+   */
+  public async getWrappedKeys(): Promise<WrappedKeyInfo[]> {
+    return (this.awAdmin as unknown as WrappedKeyMethods).getWrappedKeys();
+  }
+
+  /**
+   * Gets a wrapped key by its ID.
+   * @param id - The ID of the wrapped key.
+   * @returns A promise that resolves to the wrapped key.
+   * @throws If the wrapped key is not found.
+   */
+  public async getWrappedKeyById(id: string): Promise<WrappedKeyInfo> {
+    return (this.awAdmin as unknown as WrappedKeyMethods).getWrappedKeyById(id);
+  }
+
+  /**
+   * Removes a wrapped key from storage.
+   * @param id - The ID of the wrapped key to remove.
+   * @returns A promise that resolves to the removed wrapped key.
+   * @throws If the wrapped key is not found.
+   */
+  public async removeWrappedKey(id: string): Promise<WrappedKeyInfo> {
+    return (this.awAdmin as unknown as WrappedKeyMethods).removeWrappedKey(id);
+  }
+
+  /**
+   * Mints a new wrapped key for a PKP.
+   * @param pkpTokenId - The token ID of the PKP.
+   * @returns A promise that resolves to the minted wrapped key.
+   */
+  public async mintWrappedKey(pkpTokenId: string): Promise<WrappedKeyInfo> {
+    return (this.awAdmin as unknown as WrappedKeyMethods).mintWrappedKey(pkpTokenId);
   }
 
   /**
