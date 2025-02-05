@@ -1,10 +1,11 @@
 {
-  "name": "@lit-protocol/aw-tool-uniswap-swap",
+  "name": "@lit-protocol/aw-tool-enso",
   "version": "0.1.0-19",
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
+    "@ensofinance/sdk": "^1.0.10",
     "@lit-protocol/aw-tool": "workspace:*",
     "ethers": "^5.7.2",
     "tslib": "^2.8.1",
@@ -24,7 +25,7 @@
     "!**/*.tsbuildinfo"
   ],
   "nx": {
-    "sourceRoot": "packages/aw-tool-uniswap-swap/src",
+    "sourceRoot": "packages/aw-tool-enso/src",
     "projectType": "library",
     "targets": {
       "build": {
@@ -33,11 +34,11 @@
           "{options.outputPath}"
         ],
         "options": {
-          "outputPath": "packages/aw-tool-uniswap-swap/dist",
-          "main": "packages/aw-tool-uniswap-swap/src/index.ts",
-          "tsConfig": "packages/aw-tool-uniswap-swap/tsconfig.lib.json",
+          "outputPath": "packages/aw-tool-enso/dist",
+          "main": "packages/aw-tool-enso/src/index.ts",
+          "tsConfig": "packages/aw-tool-enso/tsconfig.lib.json",
           "assets": [
-            "packages/aw-tool-uniswap-swap/*.md"
+            "packages/aw-tool-enso/*.md"
           ]
         }
       },
@@ -50,11 +51,11 @@
           "commands": [
             "node tools/scripts/build-lit-action.js"
           ],
-          "cwd": "packages/aw-tool-uniswap-swap",
+          "cwd": "packages/aw-tool-enso",
           "parallel": false
         },
         "outputs": [
-          "{workspaceRoot}/packages/aw-tool-uniswap-swap/dist/deployed-lit-action.js"
+          "{workspaceRoot}/packages/aw-tool-enso/dist/deployed-lit-action.js"
         ]
       },
       "deploy": {
@@ -66,7 +67,7 @@
           "commands": [
             "node tools/scripts/deploy-lit-action.js"
           ],
-          "cwd": "packages/aw-tool-uniswap-swap"
+          "cwd": "packages/aw-tool-enso"
         }
       },
       "publish": {
@@ -79,6 +80,6 @@
         }
       }
     },
-    "name": "aw-tool-uniswap-swap"
+    "name": "aw-tool-enso"
   }
 }
