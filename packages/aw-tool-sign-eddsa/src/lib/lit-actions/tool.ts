@@ -69,7 +69,7 @@ declare global {
 
     const accessControlConditions: any = [
       {
-        conditionType: "evmContract",
+        //conditionType: "evmContract",
         contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
         functionName: "isToolPermittedForDelegatee",
         functionParams: [pkp.tokenId, ":currentActionIpfsId", ":userAddress"],
@@ -96,7 +96,7 @@ declare global {
       },
       {"operator": "and"},
       {
-        conditionType: "evmContract",
+        //conditionType: "evmContract",
         contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
         functionName: "isToolPermittedForDelegatee",
         functionParams: [pkp.tokenId, ":currentActionIpfsId", ":userAddress"],

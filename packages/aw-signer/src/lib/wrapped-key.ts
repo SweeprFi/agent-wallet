@@ -86,7 +86,7 @@ export async function mintWrappedKey(
 
   const evmControlConditions: EvmContractConditions = [
     {
-      conditionType: "evmContract",
+      //conditionType: "evmContract",
       contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
       functionName: "isToolPermittedForDelegatee",
       functionParams: [pkpTokenId, ":currentActionIpfsId", ":userAddress"],
@@ -113,7 +113,7 @@ export async function mintWrappedKey(
     },
     {"operator": "and"},
     {
-      conditionType: "evmContract",
+      //conditionType: "evmContract",
       contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
       functionName: "isToolPermittedForDelegatee",
       functionParams: [pkpTokenId, ":currentActionIpfsId", ":userAddress"],
