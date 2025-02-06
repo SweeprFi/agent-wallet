@@ -69,22 +69,23 @@ declare global {
 
     const accessControlConditions: any = [
       {
+        conditionType: "evmContract",
         contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
         functionName: "isToolPermittedForDelegatee",
         functionParams: [pkp.tokenId, ":currentActionIpfsId", ":userAddress"],
         functionAbi: {
-          type: "function",
-          stateMutability: "view",
           name: "isToolPermittedForDelegatee",
           inputs: [
-            { type: "uint256", name: "pkpTokenId" },
-            { type: "string", name: "toolIpfsCid" },
-            { type: "address", name: "delegatee" }
+            { name: "pkpTokenId", type: "uint256" },
+            { name: "toolIpfsCid", type: "string" },
+            { name: "delegatee", type: "address" }
           ],
           outputs: [
-            { type: "bool", name: "isPermitted" },
-            { type: "bool", name: "isEnabled" }
-          ]
+            { name: "isPermitted", type: "bool" },
+            { name: "isEnabled", type: "bool" }
+          ],
+          stateMutability: "view",
+          type: "function",
         },
         chain: "yellowstone",
         returnValueTest: {
@@ -95,22 +96,23 @@ declare global {
       },
       {"operator": "and"},
       {
+        conditionType: "evmContract",
         contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
         functionName: "isToolPermittedForDelegatee",
         functionParams: [pkp.tokenId, ":currentActionIpfsId", ":userAddress"],
         functionAbi: {
-          type: "function",
-          stateMutability: "view",
           name: "isToolPermittedForDelegatee",
           inputs: [
-            { type: "uint256", name: "pkpTokenId" },
-            { type: "string", name: "toolIpfsCid" },
-            { type: "address", name: "delegatee" }
+            { name: "pkpTokenId", type: "uint256" },
+            { name: "toolIpfsCid", type: "string" },
+            { name: "delegatee", type: "address" }
           ],
           outputs: [
-            { type: "bool", name: "isPermitted" },
-            { type: "bool", name: "isEnabled" }
-          ]
+            { name: "isPermitted", type: "bool" },
+            { name: "isEnabled", type: "bool" }
+          ],
+          stateMutability: "view",
+          type: "function",
         },
         chain: "yellowstone",
         returnValueTest: {

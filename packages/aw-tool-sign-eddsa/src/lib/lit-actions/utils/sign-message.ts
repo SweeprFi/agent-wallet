@@ -21,7 +21,7 @@ export const signMessage = async (params: {
         ciphertext: params.ciphertext,
         dataToEncryptHash: params.dataToEncryptHash,
         authSig: null,
-        chain: "ethereum",
+        chain: "yellowstone",
       });
       console.log('Decrypted secret key:', secretKey);
   
