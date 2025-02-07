@@ -20,6 +20,9 @@
       "path": "../aw-tool-sign-ecdsa/tsconfig.lib.json"
     },
     {
+      "path": "../aw-tool-jupiter-swap/tsconfig.lib.json"
+    },
+    {
       "path": "../aw-tool-erc20-transfer/tsconfig.lib.json"
     },
     {

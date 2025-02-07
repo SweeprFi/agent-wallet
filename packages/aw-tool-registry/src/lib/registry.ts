@@ -3,6 +3,7 @@ import { ERC20Transfer } from '@lit-protocol/aw-tool-erc20-transfer';
 import { UniswapSwap } from '@lit-protocol/aw-tool-uniswap-swap';
 import { SignEcdsa } from '@lit-protocol/aw-tool-sign-ecdsa';
 import { SignEddsa } from '@lit-protocol/aw-tool-sign-eddsa';
+import { JupiterSwap } from '@lit-protocol/aw-tool-jupiter-swap';
 
 /**
  * Represents the Lit network environment.
@@ -124,3 +125,4 @@ registerTool('ERC20Transfer', ERC20Transfer);
 registerTool('UniswapSwap', UniswapSwap);
 registerTool('SignEcdsa', SignEcdsa);
 registerTool('SignEddsa', SignEddsa);
+registerTool('JupiterSwap', JupiterSwap);

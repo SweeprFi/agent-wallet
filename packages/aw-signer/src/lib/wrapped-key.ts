@@ -5,6 +5,7 @@ import { StoredKeyData } from "@lit-protocol/wrapped-keys";
 import { encryptString } from "@lit-protocol/encryption";
 import { Keypair } from "@solana/web3.js";
 import crypto from 'crypto';
+import * as ethers from 'ethers';
 
 // In Node.js environment, Solana web3.js will use crypto.webcrypto
 // No need to polyfill in newer Node.js versions as it's already available
@@ -84,12 +85,17 @@ export async function mintWrappedKey(
   const pkpAddress = getPkpAddressFromSessionSigs(pkpSessionSigs);
   console.log('Using PKP address for access control:', pkpAddress);
 
+  // Convert PKP address to tokenId
+  const tokenIdBN = ethers.BigNumber.from(pkpTokenId);
+  const tokenId = tokenIdBN.toString();
+  console.log('Converted PKP address to tokenId:', tokenId);
+
   const evmControlConditions: EvmContractConditions = [
     {
       //conditionType: "evmContract",
       contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
       functionName: "isToolPermittedForDelegatee",
-      functionParams: [pkpTokenId, ":currentActionIpfsId", ":userAddress"],
+      functionParams: [tokenId, ":currentActionIpfsId", ":userAddress"],
       functionAbi: {
         name: "isToolPermittedForDelegatee",
         inputs: [
@@ -116,7 +122,7 @@ export async function mintWrappedKey(
       //conditionType: "evmContract",
       contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
       functionName: "isToolPermittedForDelegatee",
-      functionParams: [pkpTokenId, ":currentActionIpfsId", ":userAddress"],
+      functionParams: [tokenId, ":currentActionIpfsId", ":userAddress"],
       functionAbi: {
         name: "isToolPermittedForDelegatee",
         inputs: [

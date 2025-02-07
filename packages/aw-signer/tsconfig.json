@@ -13,6 +13,9 @@
       "path": "../aw-tool-sign-ecdsa"
     },
     {
+      "path": "../aw-tool-jupiter-swap"
+    },
+    {
       "path": "../aw-tool-erc20-transfer"
     },
     {

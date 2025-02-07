@@ -35,6 +35,9 @@
     },
     {
       "path": "./packages/aw-tool-sign-eddsa"
+    },
+    {
+      "path": "./packages/aw-tool-jupiter-swap"
     }
   ]
 }
