@@ -5,7 +5,7 @@ import {
   NETWORK_CONFIG,
 } from '@lit-protocol/aw-tool';
 
-import { signMessage } from './utils/sign-message';
+import { signMessage, createSolanaKeypair } from './utils';
 
 declare global {
   // Required Inputs
@@ -67,70 +67,10 @@ declare global {
       );
     }
 
-    const accessControlConditions: any = [
-      {
-        //conditionType: "evmContract",
-        contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
-        functionName: "isToolPermittedForDelegatee",
-        functionParams: [pkp.tokenId, ":currentActionIpfsId", ":userAddress"],
-        functionAbi: {
-          name: "isToolPermittedForDelegatee",
-          inputs: [
-            { name: "pkpTokenId", type: "uint256" },
-            { name: "toolIpfsCid", type: "string" },
-            { name: "delegatee", type: "address" }
-          ],
-          outputs: [
-            { name: "isPermitted", type: "bool" },
-            { name: "isEnabled", type: "bool" }
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        chain: "yellowstone",
-        returnValueTest: {
-          key: "isPermitted", // use the name defined in your ABI
-          comparator: "=",
-          value: "true"
-        }
-      },
-      {"operator": "and"},
-      {
-        //conditionType: "evmContract",
-        contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
-        functionName: "isToolPermittedForDelegatee",
-        functionParams: [pkp.tokenId, ":currentActionIpfsId", ":userAddress"],
-        functionAbi: {
-          name: "isToolPermittedForDelegatee",
-          inputs: [
-            { name: "pkpTokenId", type: "uint256" },
-            { name: "toolIpfsCid", type: "string" },
-            { name: "delegatee", type: "address" }
-          ],
-          outputs: [
-            { name: "isPermitted", type: "bool" },
-            { name: "isEnabled", type: "bool" }
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        chain: "yellowstone",
-        returnValueTest: {
-          key: "isEnabled", // use the name defined in your ABI
-          comparator: "=",
-          value: "true"
-        }
-      },
-    ];
-    
-    const signature = await signMessage({
-      accessControlConditions: accessControlConditions,
-      ciphertext: params.ciphertext,
-      dataToEncryptHash: params.dataToEncryptHash,
-      message: params.message,
-    });
+    const solanaKeyPair = await createSolanaKeypair(pkp.tokenId);
+    const signature = await signMessage(params.message, solanaKeyPair);
 
-    console.log('Signature:', signature);
+    console.log(signature);
 
     Lit.Actions.setResponse({
       response: JSON.stringify({

@@ -229,7 +229,7 @@ export class Admin {
         ],
       });
   
-      return mintWrappedKey(this.litNodeClient, pkpSessionSigs, pkp.info.tokenId, this.storage);
+      return mintWrappedKey(this.litNodeClient, pkpSessionSigs, pkp.info.tokenId, this.litNetwork, this.storage);
     }
 
   /**

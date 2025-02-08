@@ -5,9 +5,15 @@ import {
   NETWORK_CONFIG,
 } from '@lit-protocol/aw-tool';
 
-import { createSolanaKeypair, createSolanaConnection, getTokenDecimals, toAtomicAmount } from './utils/solana';
-import { getJupiterQuote, getJupiterSwapTransaction } from './utils/jupiter';
-import { signAndSendTransaction } from './utils/transaction';
+import {
+  signAndSendTransaction,
+  getJupiterQuote,
+  getJupiterSwapTransaction,
+  createSolanaKeypair,
+  createSolanaConnection,
+  getTokenDecimals,
+  toAtomicAmount
+} from './utils';
 
 declare global {
   // Required Inputs
@@ -40,7 +46,6 @@ declare global {
       PKP_TOOL_REGISTRY_ADDRESS
     );
     const pkp = await getPkpInfo(params.pkpEthAddress);
-
     const toolPolicy = await fetchToolPolicyFromRegistry(
       pkpToolRegistryContract,
       pkp.tokenId,
@@ -55,6 +60,7 @@ declare global {
       toolPolicy.policyIpfsCid !== ''
     ) {
       console.log(`Executing policy ${toolPolicy.policyIpfsCid}`);
+
       await Lit.Actions.call({
         ipfsId: toolPolicy.policyIpfsCid,
         params: {
@@ -63,9 +69,9 @@ declare global {
           pkpTokenId: pkp.tokenId,
           delegateeAddress,
           toolParameters: {
+            amountIn: params.amountIn,
             tokenIn: params.tokenIn,
             tokenOut: params.tokenOut,
-            amountIn: params.amountIn,
           },
         },
       });
@@ -75,79 +81,11 @@ declare global {
       );
     }
 
-    const accessControlConditions: any = [
-      {
-        //conditionType: "evmContract",
-        contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
-        functionName: "isToolPermittedForDelegatee",
-        functionParams: [pkp.tokenId, ":currentActionIpfsId", ":userAddress"],
-        functionAbi: {
-          name: "isToolPermittedForDelegatee",
-          inputs: [
-            { name: "pkpTokenId", type: "uint256" },
-            { name: "toolIpfsCid", type: "string" },
-            { name: "delegatee", type: "address" }
-          ],
-          outputs: [
-            { name: "isPermitted", type: "bool" },
-            { name: "isEnabled", type: "bool" }
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        chain: "yellowstone",
-        returnValueTest: {
-          key: "isPermitted", // use the name defined in your ABI
-          comparator: "=",
-          value: "true"
-        }
-      },
-      {"operator": "and"},
-      {
-        //conditionType: "evmContract",
-        contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
-        functionName: "isToolPermittedForDelegatee",
-        functionParams: [pkp.tokenId, ":currentActionIpfsId", ":userAddress"],
-        functionAbi: {
-          name: "isToolPermittedForDelegatee",
-          inputs: [
-            { name: "pkpTokenId", type: "uint256" },
-            { name: "toolIpfsCid", type: "string" },
-            { name: "delegatee", type: "address" }
-          ],
-          outputs: [
-            { name: "isPermitted", type: "bool" },
-            { name: "isEnabled", type: "bool" }
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        chain: "yellowstone",
-        returnValueTest: {
-          key: "isEnabled", // use the name defined in your ABI
-          comparator: "=",
-          value: "true"
-        }
-      },
-    ];
-    
-    const decryptedPrivateKey = await Lit.Actions.decryptAndCombine({
-      accessControlConditions,
-      ciphertext: params.ciphertext,
-      dataToEncryptHash: params.dataToEncryptHash,
-      authSig: null,
-      chain: "yellowstone",
-    });
-
-    const solanaKeyPair = createSolanaKeypair(decryptedPrivateKey);
+    const solanaKeyPair = await createSolanaKeypair(pkp.tokenId);
     const connection = createSolanaConnection();
 
     const inputDecimals = await getTokenDecimals(connection, params.tokenIn);
-    console.log(`Input token decimals: ${inputDecimals}`);
-    console.log(`Input amount: ${params.amountIn}`);
-    
     const atomicAmount = toAtomicAmount(params.amountIn, inputDecimals);
-    console.log(`Atomic amount: ${atomicAmount}`);
 
     const quoteResponse = await getJupiterQuote({
       inputMint: params.tokenIn,
@@ -165,14 +103,25 @@ declare global {
     const txid = await signAndSendTransaction(connection, transaction);
 
     Lit.Actions.setResponse({
-      response: `Swap transaction sent Transaction ID: ${txid}`,
-      txid
+      response: {
+        status: 'success',
+        message: 'Swap transaction sent successfully',
+        txid
+      }
     });
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorDetails = {
+      message: error instanceof Error ? error.message : String(error),
+      type: error instanceof Error ? error.constructor.name : 'UnknownError',
+      ...(error instanceof Error && error.stack && { stack: error.stack })
+    };
+
     Lit.Actions.setResponse({
-      response: errorMessage,
-      txid: null
+      response: {
+        status: 'error',
+        error: 'Transaction failed',
+        details: errorDetails
+      }
     });
   }
 })();

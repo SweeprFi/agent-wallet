@@ -4,6 +4,7 @@ import type { EvmContractConditions, SessionSigsMap } from '@lit-protocol/types'
 import { StoredKeyData } from "@lit-protocol/wrapped-keys";
 import { encryptString } from "@lit-protocol/encryption";
 import { Keypair } from "@solana/web3.js";
+import { getAccessControlConditions } from '@lit-protocol/aw-tool';
 import crypto from 'crypto';
 import * as ethers from 'ethers';
 
@@ -73,6 +74,7 @@ export async function mintWrappedKey(
     litNodeClient: LitNodeClientNodeJs,
     pkpSessionSigs: SessionSigsMap,
     pkpTokenId: string,
+    litNetwork: 'datil-dev' | 'datil-test' | 'datil',
     storage: LocalStorage,
   ): Promise<StoredKeyData> {
 
@@ -90,61 +92,7 @@ export async function mintWrappedKey(
   const tokenId = tokenIdBN.toString();
   console.log('Converted PKP address to tokenId:', tokenId);
 
-  const evmControlConditions: EvmContractConditions = [
-    {
-      //conditionType: "evmContract",
-      contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
-      functionName: "isToolPermittedForDelegatee",
-      functionParams: [tokenId, ":currentActionIpfsId", ":userAddress"],
-      functionAbi: {
-        name: "isToolPermittedForDelegatee",
-        inputs: [
-          { name: "pkpTokenId", type: "uint256" },
-          { name: "toolIpfsCid", type: "string" },
-          { name: "delegatee", type: "address" }
-        ],
-        outputs: [
-          { name: "isPermitted", type: "bool" },
-          { name: "isEnabled", type: "bool" }
-        ],
-        stateMutability: "view",
-        type: "function",
-      },
-      chain: "yellowstone",
-      returnValueTest: {
-        key: "isPermitted", // use the name defined in your ABI
-        comparator: "=",
-        value: "true"
-      }
-    },
-    {"operator": "and"},
-    {
-      //conditionType: "evmContract",
-      contractAddress: "0xBDEd44A02b64416C831A0D82a630488A854ab4b1",
-      functionName: "isToolPermittedForDelegatee",
-      functionParams: [tokenId, ":currentActionIpfsId", ":userAddress"],
-      functionAbi: {
-        name: "isToolPermittedForDelegatee",
-        inputs: [
-          { name: "pkpTokenId", type: "uint256" },
-          { name: "toolIpfsCid", type: "string" },
-          { name: "delegatee", type: "address" }
-        ],
-        outputs: [
-          { name: "isPermitted", type: "bool" },
-          { name: "isEnabled", type: "bool" }
-        ],
-        stateMutability: "view",
-        type: "function",
-      },
-      chain: "yellowstone",
-      returnValueTest: {
-        key: "isEnabled", // use the name defined in your ABI
-        comparator: "=",
-        value: "true"
-      }
-    },
-  ];
+  const evmControlConditions: EvmContractConditions = getAccessControlConditions(tokenId, litNetwork);
 
   const { ciphertext, dataToEncryptHash } = await encryptString({
     evmContractConditions: evmControlConditions,

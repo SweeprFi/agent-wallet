@@ -37,3 +37,4 @@ export * from './get-pkp-info';
 export * from './get-pkp-tool-registry-contract';
 export * from './get-policy-parameters';
 export * from './network-config';
+export * from './access-control-conditions';

@@ -58,102 +58,99 @@ function toAtomicAmount(amount: string, decimals: number = 9): string {
 }
 
 (async () => {
-  const pkpToolRegistryContract = await getPkpToolRegistryContract(
-    pkpToolRegistryContractAddress
-  );
-
-  const isDelegatee = await checkLitAuthAddressIsDelegatee(
-    pkpToolRegistryContract,
-    pkpTokenId
-  );
-  if (!isDelegatee) {
-    throw new Error(
-      `Session signer ${LitAuth.authSigAddress} is not a delegatee for PKP ${pkpTokenId}`
-    );
-  }
-
-  const policyParameters = await getPolicyParameters(
-    pkpToolRegistryContract,
-    pkpTokenId,
-    parentToolIpfsCid,
-    delegateeAddress,
-    ['maxAmount', 'allowedTokens']
-  );
-
-  let maxAmount = BigInt(0);
-  let allowedTokens: string[] = [];
-
-  console.log(
-    `Retrieved policy parameters: ${JSON.stringify(policyParameters)}`
-  );
-
-  const decoder = new TextDecoder();
-  for (const parameter of policyParameters) {
-    if (parameter.value === undefined) {
-      console.log(`Parameter ${parameter.name} has undefined value`);
-      continue;
-    }
-
-    try {
-      const bytes = hexToBytes(parameter.value);
-      const value = cleanDecodedString(decoder.decode(bytes));
-      console.log(`Decoded ${parameter.name}: ${value}`);
-
-      switch (parameter.name) {
-        case 'maxAmount':
-          maxAmount = BigInt(value);
-          console.log(`Formatted maxAmount: ${maxAmount.toString()}`);
-          break;
-        case 'allowedTokens':
-          try {
-            // Parse and normalize allowed tokens
-            allowedTokens = JSON.parse(value);
-            console.log(`Parsed allowedTokens: ${JSON.stringify(allowedTokens)}`);
-            allowedTokens = allowedTokens.map((addr: string) => {
-              try {
-                return new PublicKey(addr).toBase58();
-              } catch (error) {
-                console.log(`Invalid token address in policy: ${addr}`);
-                throw new Error(`Invalid token address in policy: ${addr}`);
-              }
-            });
-            console.log(`Normalized allowedTokens: ${allowedTokens.join(', ')}`);
-          } catch (error) {
-            console.log(`Error parsing allowedTokens: ${error instanceof Error ? error.message : String(error)}`);
-            throw new Error(`Invalid allowedTokens format: ${error instanceof Error ? error.message : String(error)}`);
-          }
-          break;
-      }
-    } catch (error) {
-      console.log(`Error decoding parameter ${parameter.name}: ${error instanceof Error ? error.message : String(error)}`);
-      throw new Error(`Failed to decode parameter ${parameter.name}: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  // Convert string amount to atomic units then to BigInt
-  const atomicAmount = toAtomicAmount(toolParameters.amountIn);
-  console.log(`Converting amount ${toolParameters.amountIn} to atomic units: ${atomicAmount}`);
-  const amountBigInt = BigInt(atomicAmount);
-
-  // Only validate maxAmount if it was set
-  if (maxAmount !== BigInt(0)) {
-    console.log(
-      `Checking if amount ${amountBigInt.toString()} exceeds maxAmount ${maxAmount.toString()}...`
+  try {
+    const pkpToolRegistryContract = await getPkpToolRegistryContract(
+      pkpToolRegistryContractAddress
     );
 
-    if (amountBigInt > maxAmount) {
+    const isDelegatee = await checkLitAuthAddressIsDelegatee(
+      pkpToolRegistryContract,
+      pkpTokenId
+    );
+    if (!isDelegatee) {
       throw new Error(
-        `Amount ${toolParameters.amountIn} exceeds the maximum amount ${maxAmount.toString()}`
+        `Session signer ${LitAuth.authSigAddress} is not a delegatee for PKP ${pkpTokenId}`
       );
     }
-  }
 
-  // Only validate tokens if allowedTokens was set
-  if (allowedTokens.length > 0) {
-    console.log('Validating input and output tokens against allowed list...');
-    validateToken(toolParameters.tokenIn, allowedTokens, 'input');
-    validateToken(toolParameters.tokenOut, allowedTokens, 'output');
-  }
+    const policyParameters = await getPolicyParameters(
+      pkpToolRegistryContract,
+      pkpTokenId,
+      parentToolIpfsCid,
+      delegateeAddress,
+      ['maxAmount', 'allowedTokens']
+    );
 
-  console.log('Policy parameters validated');
+    let maxAmount = BigInt(0);
+    let allowedTokens: string[] = [];
+
+    console.log(
+      `Retrieved policy parameters: ${JSON.stringify(policyParameters)}`
+    );
+
+    const decoder = new TextDecoder();
+    for (const parameter of policyParameters) {
+      if (parameter.value === undefined) {
+        console.log(`Parameter ${parameter.name} has undefined value`);
+        continue;
+      }
+
+      try {
+        const bytes = hexToBytes(parameter.value);
+        const value = cleanDecodedString(decoder.decode(bytes));
+        console.log(`Decoded ${parameter.name}: ${value}`);
+
+        switch (parameter.name) {
+          case 'maxAmount':
+            maxAmount = BigInt(value);
+            console.log(`Formatted maxAmount: ${maxAmount.toString()}`);
+            break;
+          case 'allowedTokens':
+            try {
+              allowedTokens = JSON.parse(value);
+              console.log(`Parsed allowedTokens: ${JSON.stringify(allowedTokens)}`);
+              allowedTokens = allowedTokens.map((addr: string) => {
+                try {
+                  return new PublicKey(addr).toBase58();
+                } catch (error) {
+                  throw new Error(`Invalid token address in policy: ${addr}`);
+                }
+              });
+              console.log(`Normalized allowedTokens: ${allowedTokens.join(', ')}`);
+            } catch (error) {
+              throw new Error(`Invalid allowedTokens format: ${error instanceof Error ? error.message : String(error)}`);
+            }
+            break;
+        }
+      } catch (error) {
+        throw new Error(`Failed to decode parameter ${parameter.name}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    const atomicAmount = toAtomicAmount(toolParameters.amountIn);
+    console.log(`Converting amount ${toolParameters.amountIn} to atomic units: ${atomicAmount}`);
+    const amountBigInt = BigInt(atomicAmount);
+
+    if (maxAmount !== BigInt(0)) {
+      console.log(
+        `Checking if amount ${amountBigInt.toString()} exceeds maxAmount ${maxAmount.toString()}...`
+      );
+
+      if (amountBigInt > maxAmount) {
+        throw new Error(
+          `Amount ${toolParameters.amountIn} exceeds the maximum amount ${maxAmount.toString()}`
+        );
+      }
+    }
+
+    if (allowedTokens.length > 0) {
+      console.log('Validating input and output tokens against allowed list...');
+      validateToken(toolParameters.tokenIn, allowedTokens, 'input');
+      validateToken(toolParameters.tokenOut, allowedTokens, 'output');
+    }
+
+    console.log('Policy parameters validated');
+  } catch (error) {
+    throw new Error(`Policy validation failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
 })();
