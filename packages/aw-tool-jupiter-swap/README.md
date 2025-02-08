@@ -1,55 +1,109 @@
-# AW-Tool JupiterSwap Documentation
+# AW-Tool Jupiter Swap Documentation
 
-The `aw-tool-jupiter-swap` package provides functionality for performing ECDSA signing operations using Lit Protocol's PKPs (Programmable Key Pairs). This tool enables secure signing of arbitrary messages or transactions while enforcing policy-based controls.
+The `aw-tool-jupiter-swap` package contains utilities for performing token swaps on Solana using Jupiter Exchange via Lit Protocol.
 
 ---
 
 ## Files Overview (in src/lib)
 
-### 1. **`ipfs.ts`**
-Handles IPFS CIDs for different environments (development, testing, production). Falls back to default CIDs if the build output is not found.
+### 1. **`lit-actions/tool.ts`**
+Contains the main logic for executing a Lit Action to perform a Jupiter swap.
 
 #### Key Features:
-- **Default CIDs**: Predefined CIDs for `datil-dev`, `datil-test`, and `datil` environments
-- **Dynamic CID Loading**: Attempts to load CIDs from `dist/ipfs.json` at runtime
-- **Fallback Mechanism**: Uses default CIDs if the file is missing or unreadable
+- **PKP Info Retrieval**: Fetches PKP details and validates the tool policy.
+- **Policy Validation**: Checks if a policy exists and executes it if present.
+- **Swap Execution**: Handles the complete swap flow including:
+  - Getting token decimals
+  - Converting amounts to atomic units
+  - Fetching Jupiter quotes
+  - Creating and signing transactions
+  - Broadcasting the swap transaction
 
 ---
 
-### 2. **`lit-action.ts`**
-Contains the main logic for executing a Lit Action to perform ECDSA signing operations.
+### 2. **`lit-actions/policy.ts`**
+Defines and validates the Jupiter swap policy.
 
 #### Key Features:
-- **PKP Info Retrieval**: Fetches PKP details (token ID, Ethereum address, public key) from the PubkeyRouter contract
-- **Delegatee Validation**: Verifies that the session signer is a valid delegatee for the PKP
-- **Policy Enforcement**: Validates message prefixes against the allowed prefixes in the policy
-- **Message Signing**: Signs messages using the PKP's public key via Lit Actions
-- **Error Handling**: Comprehensive error handling and response formatting
+- **Policy Validation**: Validates policy parameters including:
+  - Maximum swap amount
+  - Allowed token addresses
+- **Token Address Validation**: Ensures tokens are valid Solana public keys
+- **Amount Validation**: Checks if swap amount is within policy limits
 
 ---
 
-### 3. **`policy.ts`**
-Defines and validates the ECDSA signing policy schema using Zod.
+### 3. **`lit-actions/utils/`**
+Collection of utility functions for the swap process:
 
-#### Key Features:
-- **Policy Schema**: Validates policy fields:
-  - `type`: Must be 'SignEcdsa'
-  - `version`: Policy version string
-  - `allowedPrefixes`: Array of allowed message prefixes
-- **Encoding/Decoding**: Converts policies to and from ABI-encoded strings using ethers
-- **Type Safety**: Uses Zod for schema validation and TypeScript type inference
+#### Key Components:
+- **`solana-keypair.ts`**: Handles Solana keypair creation and management
+- **`solana-connection.ts`**: Manages Solana RPC connections
+- **`token-decimals.ts`**: Retrieves token decimal information
+- **`atomic-conversion.ts`**: Converts between human-readable and atomic amounts
+- **`quote.ts`**: Interfaces with Jupiter's quote API
+- **`swap.ts`**: Handles swap transaction creation
+- **`transaction.ts`**: Manages transaction signing and sending
 
 ---
 
-### 4. **`tool.ts`**
-Configures the ECDSA signing tool for different Lit networks.
+## Usage
 
-#### Key Features:
-- **Parameter Schema**: Validates required parameters:
-  - `pkpEthAddress`: The Ethereum address of the PKP
-  - `message`: The message to be signed
-- **Network Configuration**: Creates network-specific tools for each supported Lit network
-- **Tool Definition**: Implements the `AwTool` interface with:
-  - Name and description
-  - Parameter validation and descriptions
-  - Policy integration with `SignEcdsaPolicy`
+The tool requires the following parameters:
+```typescript
+{
+  pkpEthAddress: string;    // PKP's Ethereum address
+  tokenIn: string;         // Input token's Solana address
+  tokenOut: string;        // Output token's Solana address
+  amountIn: string;        // Amount to swap (in human-readable format)
+  ciphertext: string;      // Encrypted private key data
+  dataToEncryptHash: string; // Hash of the encrypted data
+}
+```
+
+### Policy Parameters
+
+The tool supports policy restrictions on:
+- Maximum swap amount
+- Allowed token addresses
+
+### Response Format
+
+Success Response:
+```typescript
+{
+  status: 'success',
+  message: 'Swap transaction sent successfully',
+  txid: string  // Solana transaction ID
+}
+```
+
+Error Response:
+```typescript
+{
+  status: 'error',
+  error: string,
+  details: {
+    message: string,
+    type: string,
+    stack?: string
+  }
+}
+```
+
+---
+
+## Security Features
+
+1. **Policy Enforcement**: Validates all swaps against defined policies
+2. **Access Control**: Uses Lit Protocol's access control conditions
+3. **Secure Key Management**: Handles private keys securely through encryption
+4. **Input Validation**: Validates all input parameters before execution
+
+---
+
+## Dependencies
+
+- `@solana/web3.js`: Solana blockchain interaction
+- `@lit-protocol/aw-tool`: Core Agent Wallet tooling
+- Jupiter Exchange SDK: For swap functionality

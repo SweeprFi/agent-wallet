@@ -5,15 +5,13 @@ export async function signAndSendTransaction(
   transaction: VersionedTransaction
 ): Promise<string> {
   console.log('Starting transaction send process...');
-  
-  // Get the latest blockhash
+
   const latestBlockHash = await connection.getLatestBlockhash('confirmed');
   if (!latestBlockHash) {
     throw new Error('Failed to get recent blockhash');
   }
   console.log('Got latest blockhash:', latestBlockHash.blockhash);
 
-  // Execute the transaction using runOnce
   console.log('Entering runOnce for transaction sending...');
   const txid = await Lit.Actions.runOnce(
     { waitForResponse: true, name: 'txnSender' },
@@ -22,7 +20,7 @@ export async function signAndSendTransaction(
       try {
         const rawTransaction = transaction.serialize();
         console.log('Transaction serialized, sending to network...');
-        
+
         const signature = await connection.sendRawTransaction(rawTransaction, {
           skipPreflight: true,
           maxRetries: 3,

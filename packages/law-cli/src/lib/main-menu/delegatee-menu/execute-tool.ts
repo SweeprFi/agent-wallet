@@ -150,12 +150,9 @@ export const handleExecuteTool = async (
 
     let params: { accessControlConditions?: any } = {};
 
-    // If the tool is for Solana chain, handle wrapped key selection
     if (selectedTool.chain === 'solana') {
       // Get wrapped keys
       const wrappedKeys = await delegatee.getWrappedKeys();
-      
-      // Prompt for wrapped key selection, passing the pkp address
       const wrappedKeyId = await promptSelectWrappedKey(wrappedKeys, pkp.ethAddress);
 
       // Find the selected wrapped key
@@ -164,13 +161,12 @@ export const handleExecuteTool = async (
         throw new Error('Selected wrapped key not found');
       }
 
-      // Get all parameters, passing wrapped key data as foundParams
       params = await getToolParams(localStorage, selectedTool, pkp.ethAddress, {
         foundParams: {
           ciphertext: selectedKey.ciphertext,
           dataToEncryptHash: selectedKey.dataToEncryptHash,
         },
-      }) as any; // Cast to any to allow adding accessControlConditions
+      }) as any;
     } else {
       // For non-Solana tools, just get the regular parameters
       params = await getToolParams(localStorage, selectedTool, pkp.ethAddress) as any; // Cast to any to allow adding accessControlConditions

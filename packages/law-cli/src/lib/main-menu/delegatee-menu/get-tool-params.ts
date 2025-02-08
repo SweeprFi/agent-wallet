@@ -28,7 +28,6 @@ export const getToolParams = async <T extends Record<string, any>>(
       )
     : Object.entries(tool.parameters.descriptions);
 
-  // First check if we need both chain parameters
   const needsChainId = paramsToPrompt.some(
     ([paramName]) => paramName === 'chainId'
   );
@@ -36,7 +35,6 @@ export const getToolParams = async <T extends Record<string, any>>(
     ([paramName]) => paramName === 'rpcUrl'
   );
 
-  // If we need either chain parameter, handle them together
   if (needsChainId || needsRpcUrl) {
     const chainParams = await promptSelectChain(localStorage, {
       needsChainId,
@@ -56,7 +54,6 @@ export const getToolParams = async <T extends Record<string, any>>(
     );
   }
 
-  // Handle remaining parameters
   for (const [paramName, description] of paramsToPrompt) {
     // Skip pkpEthAddress, ciphertext, and dataToEncryptHash as they're handled elsewhere
     if (paramName === 'pkpEthAddress' || 
@@ -65,7 +62,6 @@ export const getToolParams = async <T extends Record<string, any>>(
       continue;
     }
 
-    // If we already have this parameter in foundParams, skip it
     if (options?.foundParams && paramName in options.foundParams) {
       continue;
     }

@@ -4,9 +4,14 @@ import {
   AUTH_METHOD_SCOPE_VALUES,
   LIT_ABILITY,
 } from '@lit-protocol/constants';
+import { 
+  LitActionResource, 
+  LitPKPResource, 
+  LitAccessControlConditionResource 
+} from '@lit-protocol/auth-helpers';
 import { LitContracts } from '@lit-protocol/contracts-sdk';
+import { EthWalletProvider } from '@lit-protocol/lit-auth-client';
 import { ethers } from 'ethers';
-import { loadWrappedKeysFromStorage, loadWrappedKeyFromStorage, removeWrappedKeyFromStorage, mintWrappedKey } from './wrapped-key';
 
 import {
   AdminConfig,
@@ -21,12 +26,13 @@ import {
   getPkpToolRegistryContract,
   getRegisteredToolsAndDelegatees,
 } from './utils/pkp-tool-registry';
+import { 
+  loadWrappedKeysFromStorage, 
+  loadWrappedKeyFromStorage, 
+  removeWrappedKeyFromStorage, 
+  mintWrappedKey } from './wrapped-key';
 import { LocalStorage } from './utils/storage';
-import { LitActionResource } from '@lit-protocol/auth-helpers';
-import { LitPKPResource } from '@lit-protocol/auth-helpers';
-import { AwSignerError, AwSignerErrorType,  } from './errors';
-import { LitAccessControlConditionResource } from '@lit-protocol/auth-helpers';
-import { EthWalletProvider } from '@lit-protocol/lit-auth-client';
+import { AwSignerError, AwSignerErrorType } from './errors';
 
 type AdminStorageLayout = {
   [ethAddress: string]: {
@@ -359,7 +365,7 @@ export class Admin {
    * Transfers ownership of the PKP to a new owner.
    * @param newOwner - The address of the new owner.
    * @returns A promise that resolves to the transaction receipt.
-   * @throws If the Admin instance is not properly initialized.
+   * @throws If the tool policy registry contract is not initialized.
    */
   public async transferPkpOwnership(pkpTokenId: string, newOwner: string) {
     if (!this.litContracts) {

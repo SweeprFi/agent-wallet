@@ -1,5 +1,5 @@
 export default {
-  displayName: 'aw-tool-sign-ecdsa',
+  displayName: 'aw-tool-sign-eddsa',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
   transform: {

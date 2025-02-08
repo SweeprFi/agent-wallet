@@ -9,7 +9,6 @@ import crypto from 'crypto';
 import * as ethers from 'ethers';
 
 // In Node.js environment, Solana web3.js will use crypto.webcrypto
-// No need to polyfill in newer Node.js versions as it's already available
 if (typeof window === 'undefined' && !global.crypto?.subtle) {
   // Only set if subtle is not available (older Node.js versions)
   Object.defineProperty(global, 'crypto', {
@@ -41,13 +40,13 @@ export function loadWrappedKeyFromStorage(storage: LocalStorage, id: string): St
 export function saveWrappedKeyToStorage(storage: LocalStorage, wrappedKey: StoredKeyData) {
   const wrappedKeys = loadWrappedKeysFromStorage(storage);
   const index = wrappedKeys.findIndex(wk => wk.id === wrappedKey.id);
-  
+
   if (index === -1) {
     wrappedKeys.push(wrappedKey);
   } else {
     wrappedKeys[index] = wrappedKey;
   }
-  
+
   storage.setItem('wks', JSON.stringify(wrappedKeys));
 }
 
@@ -56,7 +55,7 @@ export function loadWrappedKeysFromStorage(storage: LocalStorage): StoredKeyData
   if (!wks) {
     return [];
   }
-  
+
   try {
     return JSON.parse(wks) as StoredKeyData[];
   } catch (error) {
@@ -71,12 +70,12 @@ export function loadWrappedKeysFromStorage(storage: LocalStorage): StoredKeyData
 }
 
 export async function mintWrappedKey(
-    litNodeClient: LitNodeClientNodeJs,
-    pkpSessionSigs: SessionSigsMap,
-    pkpTokenId: string,
-    litNetwork: 'datil-dev' | 'datil-test' | 'datil',
-    storage: LocalStorage,
-  ): Promise<StoredKeyData> {
+  litNodeClient: LitNodeClientNodeJs,
+  pkpSessionSigs: SessionSigsMap,
+  pkpTokenId: string,
+  litNetwork: 'datil-dev' | 'datil-test' | 'datil',
+  storage: LocalStorage,
+): Promise<StoredKeyData> {
 
   const solanaKeypair = Keypair.generate();
   console.log('Solana Keypair:', {
@@ -98,7 +97,7 @@ export async function mintWrappedKey(
     evmContractConditions: evmControlConditions,
     dataToEncrypt: Buffer.from(solanaKeypair.secretKey).toString('base64'),
   },
-  litNodeClient
+    litNodeClient
   );
 
   const storeResponse = await storeEncryptedKey({
