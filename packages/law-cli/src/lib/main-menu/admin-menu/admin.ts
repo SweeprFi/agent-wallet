@@ -8,6 +8,8 @@ export interface WrappedKeyInfo {
   publicKey: string;
   keyType: string;
   memo: string;
+  pkpAddress: string;
+  litNetwork: string;
 }
 
 // Define the shape of the wrapped key methods that exist on AwAdmin

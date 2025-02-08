@@ -168,7 +168,7 @@ export class Delegatee implements CredentialStore {
    */
   public static async create(
     delegateePrivateKey?: string,
-    { litNetwork, debug = true }: AgentConfig = {}
+    { litNetwork, debug = false }: AgentConfig = {}
   ) {
     if (!litNetwork) {
       throw new AwSignerError(

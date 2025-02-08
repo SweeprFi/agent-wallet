@@ -53,11 +53,18 @@ const promptSelectTool = async (
 /**
  * Prompts the user to select a wrapped key from a list of available keys.
  */
-const promptSelectWrappedKey = async (wrappedKeys: any[]) => {
-  if (wrappedKeys.length === 0) {
+const promptSelectWrappedKey = async (wrappedKeys: any[], pkpAddress: string) => {
+  // Filter wrapped keys by pkpAddress
+  const filteredKeys = wrappedKeys.filter(key => {
+    return key.pkpAddress?.toLowerCase() === pkpAddress.toLowerCase();
+  });
+
+  logger.info(`Found ${filteredKeys.length} keys for PKP address ${pkpAddress}`);
+
+  if (filteredKeys.length === 0) {
     throw new LawCliError(
       DelegateeErrors.NO_WRAPPED_KEYS_AVAILABLE,
-      'No wrapped keys available to select'
+      `No wrapped keys available for PKP address ${pkpAddress}`
     );
   }
 
@@ -65,7 +72,7 @@ const promptSelectWrappedKey = async (wrappedKeys: any[]) => {
     type: 'select',
     name: 'keyId',
     message: 'Select a wrapped key to use:',
-    choices: wrappedKeys.map((key) => ({
+    choices: filteredKeys.map((key) => ({
       title: `${key.id} (${key.publicKey})`,
       value: key.id,
     })),
@@ -148,8 +155,8 @@ export const handleExecuteTool = async (
       // Get wrapped keys
       const wrappedKeys = await delegatee.getWrappedKeys();
       
-      // Prompt for wrapped key selection
-      const wrappedKeyId = await promptSelectWrappedKey(wrappedKeys);
+      // Prompt for wrapped key selection, passing the pkp address
+      const wrappedKeyId = await promptSelectWrappedKey(wrappedKeys, pkp.ethAddress);
 
       // Find the selected wrapped key
       const selectedKey = wrappedKeys.find(key => key.id === wrappedKeyId);

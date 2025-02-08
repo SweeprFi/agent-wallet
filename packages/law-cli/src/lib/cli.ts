@@ -539,7 +539,7 @@ export class LawCli {
 
     switch (option) {
       case ManageWrappedKeysMenuChoice.GetWrappedKeys:
-        await handleGetWrappedKeys(lawCli.admin!);
+        await handleGetWrappedKeys(lawCli.admin!, pkp);
         await LawCli.handleManageWrappedKeysMenu(lawCli, pkp);
         break;
       case ManageWrappedKeysMenuChoice.MintWrappedKey:
@@ -547,7 +547,7 @@ export class LawCli {
         await LawCli.handleManageWrappedKeysMenu(lawCli, pkp);
         break;
       case ManageWrappedKeysMenuChoice.RemoveWrappedKey:
-        await handleRemoveWrappedKey(lawCli.admin!);
+        await handleRemoveWrappedKey(lawCli.admin!, pkp);
         await LawCli.handleManageWrappedKeysMenu(lawCli, pkp);
         break;
       case ManageWrappedKeysMenuChoice.Back:

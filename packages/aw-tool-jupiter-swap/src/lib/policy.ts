@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PublicKey } from '@solana/web3.js';
+import { ethers } from 'ethers';
 
 /**
  * Schema for validating a JupiterSwap policy.
@@ -13,7 +14,17 @@ const policySchema = z.object({
   version: z.string(),
 
   /** The maximum amount of token that can be sent. */
-  maxAmount: z.number(),
+  maxAmount: z.string().refine(
+    (val) => {
+      try {
+        const bn = ethers.BigNumber.from(val);
+        return !bn.isNegative(); // Ensure the amount is non-negative
+      } catch {
+        return false; // Invalid format
+      }
+    },
+    { message: 'Invalid amount format. Must be a non-negative integer.' }
+  ),
 
   /** The swap can only be performed between these tokens. */
   allowedTokens: z.array(z.string().refine((val: string) => {
@@ -36,10 +47,17 @@ function encodePolicy(policy: JupiterSwapPolicyType): string {
   // Validate the policy against the schema
   policySchema.parse(policy);
   
-  return Buffer.from(JSON.stringify({
-    maxAmount: BigInt(policy.maxAmount).toString(),
-    allowedTokens: policy.allowedTokens
-  })).toString('base64');
+  // Convert the allowedTokens array to a JSON string
+  const allowedTokensJson = JSON.stringify(policy.allowedTokens);
+  
+  // Encode the policy using ABI encoding for Ethereum compatibility
+  return ethers.utils.defaultAbiCoder.encode(
+    ['tuple(uint256 maxAmount, string allowedTokens)'],
+    [{
+      maxAmount: policy.maxAmount,
+      allowedTokens: allowedTokensJson
+    }]
+  );
 }
 
 /**
@@ -49,13 +67,20 @@ function encodePolicy(policy: JupiterSwapPolicyType): string {
  * @throws If the encoded policy is invalid or does not conform to the schema.
  */
 function decodePolicy(encodedPolicy: string): JupiterSwapPolicyType {
-  const decoded = JSON.parse(Buffer.from(encodedPolicy, 'base64').toString());
+  // Decode the ABI-encoded string
+  const decoded = ethers.utils.defaultAbiCoder.decode(
+    ['tuple(uint256 maxAmount, string allowedTokens)'],
+    encodedPolicy
+  )[0];
+  
+  // Parse the JSON string back to an array
+  const allowedTokens = JSON.parse(decoded.allowedTokens);
   
   const policy: JupiterSwapPolicyType = {
     type: 'JupiterSwap',
     version: '1.0.0',
-    maxAmount: Number(BigInt(decoded.maxAmount)),
-    allowedTokens: decoded.allowedTokens.map((addr: string) => new PublicKey(addr).toBase58())
+    maxAmount: decoded.maxAmount.toString(),
+    allowedTokens: allowedTokens.map((addr: string) => new PublicKey(addr).toBase58())
   };
 
   return policySchema.parse(policy);

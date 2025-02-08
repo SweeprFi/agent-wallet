@@ -6,31 +6,43 @@ import { logger } from '../../../core';
 // Import the WrappedKeyInfo interface
 import type { WrappedKeyInfo } from '../admin';
 
-export const handleGetWrappedKeys = async (admin: Admin) => {
+export const handleGetWrappedKeys = async (admin: Admin, pkp?: PkpInfo) => {
   const wrappedKeys = await admin.getWrappedKeys();
   if (wrappedKeys.length === 0) {
-    logger.info('No wrapped keys found.');
+    logger.log('No wrapped keys found.');
     return;
   }
 
-  logger.info('Wrapped Keys:');
-  wrappedKeys.forEach((key: WrappedKeyInfo) => {
-    logger.info(`ID: ${key.id}`);
-    logger.info(`Public Key: ${key.publicKey}`);
-    logger.info(`Key Type: ${key.keyType}`);
-    logger.info(`Memo: ${key.memo}`);
-    logger.info('---');
+  // Filter keys by PKP address if a PKP is provided
+  const filteredKeys = pkp 
+    ? wrappedKeys.filter(key => key.pkpAddress?.toLowerCase() === pkp.info.ethAddress.toLowerCase())
+    : wrappedKeys;
+
+  if (filteredKeys.length === 0) {
+    logger.log(`No wrapped keys found${pkp ? ` for PKP address ${pkp.info.ethAddress}` : ''}.`);
+    return;
+  }
+
+  logger.info(`Wrapped Keys${pkp ? ` for PKP ${pkp.info.ethAddress}` : ''}:`);
+  filteredKeys.forEach((key: WrappedKeyInfo) => {
+    logger.log(`ID: ${key.id}`);
+    logger.log(`Public Key: ${key.publicKey}`);
+    logger.log(`Key Type: ${key.keyType}`);
+    logger.log(`PKP Address: ${key.pkpAddress}`);
+    logger.log(`Memo: ${key.memo}`);
+    logger.log(`Network: ${key.litNetwork}`);
+    logger.log('---');
   });
 };
 
 export const handleMintWrappedKey = async (admin: Admin, pkp: PkpInfo) => {
   try {
     const wrappedKey = await admin.mintWrappedKey(pkp.info.tokenId);
-    logger.info('Successfully minted new wrapped key:');
-    logger.info(`ID: ${wrappedKey.id}`);
-    logger.info(`Public Key: ${wrappedKey.publicKey}`);
-    logger.info(`Key Type: ${wrappedKey.keyType}`);
-    logger.info(`Memo: ${wrappedKey.memo}`);
+    logger.log('Successfully minted new wrapped key:');
+    logger.log(`ID: ${wrappedKey.id}`);
+    logger.log(`Public Key: ${wrappedKey.publicKey}`);
+    logger.log(`Key Type: ${wrappedKey.keyType}`);
+    logger.log(`Memo: ${wrappedKey.memo}`);
   } catch (error) {
     if (error instanceof Error) {
       logger.error(`Failed to mint wrapped key: ${error.message}`);
@@ -40,10 +52,20 @@ export const handleMintWrappedKey = async (admin: Admin, pkp: PkpInfo) => {
   }
 };
 
-export const handleRemoveWrappedKey = async (admin: Admin) => {
+export const handleRemoveWrappedKey = async (admin: Admin, pkp?: PkpInfo) => {
   const wrappedKeys = await admin.getWrappedKeys();
   if (wrappedKeys.length === 0) {
-    logger.info('No wrapped keys found to remove.');
+    logger.log('No wrapped keys found to remove.');
+    return;
+  }
+
+  // Filter keys by PKP address if a PKP is provided
+  const filteredKeys = pkp 
+    ? wrappedKeys.filter(key => key.pkpAddress?.toLowerCase() === pkp.info.ethAddress.toLowerCase())
+    : wrappedKeys;
+
+  if (filteredKeys.length === 0) {
+    logger.log(`No wrapped keys found${pkp ? ` for PKP address ${pkp.info.ethAddress}` : ''}.`);
     return;
   }
 
@@ -51,20 +73,20 @@ export const handleRemoveWrappedKey = async (admin: Admin) => {
     type: 'select',
     name: 'keyId',
     message: 'Select a wrapped key to remove:',
-    choices: wrappedKeys.map((key: WrappedKeyInfo) => ({
+    choices: filteredKeys.map((key: WrappedKeyInfo) => ({
       title: `${key.id} (${key.publicKey})`,
       value: key.id,
     })),
   });
 
   if (!keyId) {
-    logger.info('No wrapped key selected for removal.');
+    logger.log('No wrapped key selected for removal.');
     return;
   }
 
   try {
     const removedKey = await admin.removeWrappedKey(keyId);
-    logger.info(`Successfully removed wrapped key: ${removedKey.id}`);
+    logger.log(`Successfully removed wrapped key: ${removedKey.id}`);
   } catch (error) {
     if (error instanceof Error) {
       logger.error(`Failed to remove wrapped key: ${error.message}`);

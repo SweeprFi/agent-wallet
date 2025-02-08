@@ -243,7 +243,7 @@ export class Admin {
    */
   public static async create(
     adminConfig: AdminConfig,
-    { litNetwork, debug = true }: AgentConfig = {}
+    { litNetwork, debug = false }: AgentConfig = {}
   ) {
     if (!litNetwork) {
       throw new AwSignerError(

@@ -19,6 +19,44 @@ declare global {
   };
 }
 
+function hexToBytes(hex: string): Uint8Array {
+  // Remove '0x' prefix if present
+  hex = hex.startsWith('0x') ? hex.slice(2) : hex;
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
+  }
+  return bytes;
+}
+
+function cleanDecodedString(str: string): string {
+  // Remove null bytes and trim whitespace
+  return str.replace(/\0/g, '').trim();
+}
+
+function validateToken(token: string, allowedTokens: string[], tokenType: string): string {
+  try {
+    const tokenPubkey = new PublicKey(token).toBase58();
+    if (!allowedTokens.includes(tokenPubkey)) {
+      throw new Error(
+        `${tokenType} token ${token} not allowed. Must be one of: ${allowedTokens.join(', ')}`
+      );
+    }
+    return tokenPubkey;
+  } catch (error) {
+    throw new Error(`Invalid Solana token address for ${tokenType}: ${token}`);
+  }
+}
+
+function toAtomicAmount(amount: string, decimals: number = 9): string {
+  // Convert decimal string to atomic units
+  const [whole, fraction = ''] = amount.split('.');
+  const paddedFraction = fraction.padEnd(decimals, '0');
+  const atomicAmount = `${whole}${paddedFraction}`;
+  // Remove leading zeros
+  return atomicAmount.replace(/^0+/, '') || '0';
+}
+
 (async () => {
   const pkpToolRegistryContract = await getPkpToolRegistryContract(
     pkpToolRegistryContractAddress
@@ -49,62 +87,72 @@ declare global {
     `Retrieved policy parameters: ${JSON.stringify(policyParameters)}`
   );
 
+  const decoder = new TextDecoder();
   for (const parameter of policyParameters) {
-    const value = new TextDecoder().decode(parameter.value);
+    if (parameter.value === undefined) {
+      console.log(`Parameter ${parameter.name} has undefined value`);
+      continue;
+    }
 
-    switch (parameter.name) {
-      case 'maxAmount':
-        maxAmount = BigInt(value);
-        console.log(`Formatted maxAmount: ${maxAmount.toString()}`);
-        break;
-      case 'allowedTokens':
-        allowedTokens = JSON.parse(value);
-        allowedTokens = allowedTokens.map((addr: string) => new PublicKey(addr).toBase58());
-        console.log(`Formatted allowedTokens: ${allowedTokens.join(', ')}`);
-        break;
+    try {
+      const bytes = hexToBytes(parameter.value);
+      const value = cleanDecodedString(decoder.decode(bytes));
+      console.log(`Decoded ${parameter.name}: ${value}`);
+
+      switch (parameter.name) {
+        case 'maxAmount':
+          maxAmount = BigInt(value);
+          console.log(`Formatted maxAmount: ${maxAmount.toString()}`);
+          break;
+        case 'allowedTokens':
+          try {
+            // Parse and normalize allowed tokens
+            allowedTokens = JSON.parse(value);
+            console.log(`Parsed allowedTokens: ${JSON.stringify(allowedTokens)}`);
+            allowedTokens = allowedTokens.map((addr: string) => {
+              try {
+                return new PublicKey(addr).toBase58();
+              } catch (error) {
+                console.log(`Invalid token address in policy: ${addr}`);
+                throw new Error(`Invalid token address in policy: ${addr}`);
+              }
+            });
+            console.log(`Normalized allowedTokens: ${allowedTokens.join(', ')}`);
+          } catch (error) {
+            console.log(`Error parsing allowedTokens: ${error instanceof Error ? error.message : String(error)}`);
+            throw new Error(`Invalid allowedTokens format: ${error instanceof Error ? error.message : String(error)}`);
+          }
+          break;
+      }
+    } catch (error) {
+      console.log(`Error decoding parameter ${parameter.name}: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Failed to decode parameter ${parameter.name}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
-  if (maxAmount === BigInt(0)) {
-    throw new Error('maxAmount policy parameter is required but was not found');
-  }
+  // Convert string amount to atomic units then to BigInt
+  const atomicAmount = toAtomicAmount(toolParameters.amountIn);
+  console.log(`Converting amount ${toolParameters.amountIn} to atomic units: ${atomicAmount}`);
+  const amountBigInt = BigInt(atomicAmount);
 
-  // Convert string amount to BigInt and compare
-  const amountBigInt = BigInt(toolParameters.amountIn);
-  console.log(
-    `Checking if amount ${amountBigInt.toString()} exceeds maxAmount ${maxAmount.toString()}...`
-  );
-
-  if (amountBigInt > maxAmount) {
-    throw new Error(
-      `Amount ${amountBigInt.toString()} exceeds the maximum amount ${maxAmount.toString()}`
+  // Only validate maxAmount if it was set
+  if (maxAmount !== BigInt(0)) {
+    console.log(
+      `Checking if amount ${amountBigInt.toString()} exceeds maxAmount ${maxAmount.toString()}...`
     );
+
+    if (amountBigInt > maxAmount) {
+      throw new Error(
+        `Amount ${toolParameters.amountIn} exceeds the maximum amount ${maxAmount.toString()}`
+      );
+    }
   }
 
+  // Only validate tokens if allowedTokens was set
   if (allowedTokens.length > 0) {
-    console.log(`Checking if ${toolParameters.tokenIn} is an allowed token...`);
-    try {
-      const tokenInPubkey = new PublicKey(toolParameters.tokenIn).toBase58();
-      if (!allowedTokens.includes(tokenInPubkey)) {
-        throw new Error(
-          `Token ${toolParameters.tokenIn} not allowed. Allowed tokens: ${allowedTokens.join(', ')}`
-        );
-      }
-    } catch (e) {
-      throw new Error(`Invalid Solana token address for tokenIn: ${toolParameters.tokenIn}`);
-    }
-
-    console.log(`Checking if ${toolParameters.tokenOut} is an allowed token...`);
-    try {
-      const tokenOutPubkey = new PublicKey(toolParameters.tokenOut).toBase58();
-      if (!allowedTokens.includes(tokenOutPubkey)) {
-        throw new Error(
-          `Token ${toolParameters.tokenOut} not allowed. Allowed tokens: ${allowedTokens.join(', ')}`
-        );
-      }
-    } catch (e) {
-      throw new Error(`Invalid Solana token address for tokenOut: ${toolParameters.tokenOut}`);
-    }
+    console.log('Validating input and output tokens against allowed list...');
+    validateToken(toolParameters.tokenIn, allowedTokens, 'input');
+    validateToken(toolParameters.tokenOut, allowedTokens, 'output');
   }
 
   console.log('Policy parameters validated');
