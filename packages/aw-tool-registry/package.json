@@ -1,11 +1,12 @@
 {
   "name": "@lit-protocol/aw-tool-registry",
-  "version": "0.1.0-17",
+  "version": "0.1.0-19",
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "@lit-protocol/aw-tool": "workspace:*",
+    "@lit-protocol/aw-tool-enso": "workspace:*",
     "@lit-protocol/aw-tool-erc20-transfer": "workspace:*",
     "@lit-protocol/aw-tool-jupiter-swap": "workspace:*",
     "@lit-protocol/aw-tool-sign-ecdsa": "workspace:*",

@@ -38,6 +38,9 @@
     },
     {
       "path": "./packages/aw-tool-jupiter-swap"
+    },
+    {
+      "path": "./packages/aw-tool-enso"
     }
   ]
 }

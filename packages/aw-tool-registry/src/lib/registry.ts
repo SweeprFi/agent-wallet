@@ -4,6 +4,7 @@ import { UniswapSwap } from '@lit-protocol/aw-tool-uniswap-swap';
 import { SignEcdsa } from '@lit-protocol/aw-tool-sign-ecdsa';
 import { SignEddsa } from '@lit-protocol/aw-tool-sign-eddsa';
 import { JupiterSwap } from '@lit-protocol/aw-tool-jupiter-swap';
+import { Enso } from '@lit-protocol/aw-tool-enso';
 
 /**
  * Represents the Lit network environment.
@@ -126,3 +127,4 @@ registerTool('UniswapSwap', UniswapSwap);
 registerTool('SignEcdsa', SignEcdsa);
 registerTool('SignEddsa', SignEddsa);
 registerTool('JupiterSwap', JupiterSwap);
+registerTool('Enso', Enso);
