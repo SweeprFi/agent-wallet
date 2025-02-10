@@ -2,7 +2,8 @@ import { type DelegatedPkpInfo, type AwTool } from '@lit-protocol/agent-wallet';
 import prompts from 'prompts';
 
 import { Delegatee } from './delegatee';
-import { LawCliError, logger, DelegateeErrors, LocalStorage } from '../../core';
+import { LawCliError, logger, LocalStorage } from '../../core';
+import { DelegateeErrors } from '../../core/law-cli-error';
 import { getToolParams } from './get-tool-params';
 
 /**
@@ -47,6 +48,44 @@ const promptSelectTool = async (
   }
 
   return tool as AwTool<any, any>;
+};
+
+/**
+ * Prompts the user to select a wrapped key from a list of available keys.
+ */
+const promptSelectWrappedKey = async (wrappedKeys: any[], pkpAddress: string) => {
+  // Filter wrapped keys by pkpAddress
+  const filteredKeys = wrappedKeys.filter(key => {
+    return key.pkpAddress?.toLowerCase() === pkpAddress.toLowerCase();
+  });
+
+  logger.info(`Found ${filteredKeys.length} keys for PKP address ${pkpAddress}`);
+
+  if (filteredKeys.length === 0) {
+    throw new LawCliError(
+      DelegateeErrors.NO_WRAPPED_KEYS_AVAILABLE,
+      `No wrapped keys available for PKP address ${pkpAddress}`
+    );
+  }
+
+  const { keyId } = await prompts({
+    type: 'select',
+    name: 'keyId',
+    message: 'Select a wrapped key to use:',
+    choices: filteredKeys.map((key) => ({
+      title: `${key.id} (${key.publicKey})`,
+      value: key.id,
+    })),
+  });
+
+  if (!keyId) {
+    throw new LawCliError(
+      DelegateeErrors.WRAPPED_KEY_SELECTION_CANCELLED,
+      'Wrapped key selection was cancelled'
+    );
+  }
+
+  return keyId;
 };
 
 /**
@@ -109,14 +148,29 @@ export const handleExecuteTool = async (
       logger.log(`  Policy Enabled: ${policy.enabled ? '✅' : '❌'}`);
     }
 
-    // Prompt for tool parameters
-    logger.info('Enter Tool Parameters:');
-    const params = await getToolParams(
-      localStorage,
-      selectedTool,
-      pkp.ethAddress
-    );
+    let params: { accessControlConditions?: any } = {};
 
+    if (selectedTool.chain === 'solana') {
+      // Get wrapped keys
+      const wrappedKeys = await delegatee.getWrappedKeys();
+      const wrappedKeyId = await promptSelectWrappedKey(wrappedKeys, pkp.ethAddress);
+
+      // Find the selected wrapped key
+      const selectedKey = wrappedKeys.find(key => key.id === wrappedKeyId);
+      if (!selectedKey) {
+        throw new Error('Selected wrapped key not found');
+      }
+
+      params = await getToolParams(localStorage, selectedTool, pkp.ethAddress, {
+        foundParams: {
+          ciphertext: selectedKey.ciphertext,
+          dataToEncryptHash: selectedKey.dataToEncryptHash,
+        },
+      }) as any;
+    } else {
+      // For non-Solana tools, just get the regular parameters
+      params = await getToolParams(localStorage, selectedTool, pkp.ethAddress) as any; // Cast to any to allow adding accessControlConditions
+    }
     // Execute the tool
     logger.info('Executing tool...');
     const response = await delegatee.awDelegatee.executeTool({
@@ -144,6 +198,14 @@ export const handleExecuteTool = async (
       }
       if (error.type === DelegateeErrors.TOOL_PARAMS_INVALID) {
         logger.error(error.message);
+        return;
+      }
+      if (error.type === DelegateeErrors.NO_WRAPPED_KEYS_AVAILABLE) {
+        logger.error('No wrapped keys available');
+        return;
+      }
+      if (error.type === DelegateeErrors.WRAPPED_KEY_SELECTION_CANCELLED) {
+        logger.error('Wrapped key selection cancelled');
         return;
       }
     }

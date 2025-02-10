@@ -97,6 +97,11 @@ export interface AwTool<
   defaultPolicyIpfsCid: string;
 
   /**
+   * The chain of the tool.
+   */
+  chain: string;
+
+  /**
    * Configuration for the tool's parameters.
    * Defines the structure, validation, and documentation of the tool's input parameters.
    */

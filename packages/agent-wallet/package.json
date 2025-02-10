@@ -5,7 +5,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@lit-protocol/constants": "7.0.2",
+    "@lit-protocol/constants": "7.0.6",
     "@lit-protocol/aw-subagent-openai": "workspace:*",
     "@lit-protocol/aw-signer": "workspace:*",
     "@lit-protocol/aw-tool": "workspace:*",

@@ -76,6 +76,11 @@ import {
   handleGetIntentMatcher,
   handleExecuteTool,
   handleExecuteToolViaIntent,
+  handleManageWrappedKeysMenu,
+  ManageWrappedKeysMenuChoice,
+  handleGetWrappedKeys,
+  handleMintWrappedKey,
+  handleRemoveWrappedKey,
 } from './main-menu';
 
 export class LawCli {
@@ -110,9 +115,12 @@ export class LawCli {
 
     // Only populate default RPCs if none exist
     const sortedChains = Object.fromEntries(
-      Object.entries(LIT_CHAINS).sort(([, a], [, b]) =>
-        a.name.localeCompare(b.name)
-      )
+      Object.entries(LIT_CHAINS).sort(([, a], [, b]) => {
+        const chainA = a as any;
+        const chainB = b as any;
+        if (!chainA.name || !chainB.name) return 0;
+        return chainA.name.localeCompare(chainB.name);
+      })
     );
     localStorage.setItem(StorageKeys.RPCS, JSON.stringify(sortedChains));
   }
@@ -234,19 +242,6 @@ export class LawCli {
   }
 
   private static async handleAdminMenu(lawCli: LawCli, pkp?: PkpInfo) {
-    // TODO I don't think this is needed since options other than AdminSettings
-    // are not available if an Admin is not configured.
-    // If an instance of Admin is not provided, prompt the user to configure an Admin signer
-    // if (admin === undefined) {
-    //   const adminPrivateKey = lawCli.localStorage.getItem(
-    //     StorageKeys.ADMIN_PRIVATE_KEY
-    //   );
-
-    //   if (adminPrivateKey) {
-    //     admin = await Admin.create(lawCli.litNetwork, adminPrivateKey);
-    //   }
-    // }
-
     const option = await handleAdminMenu(lawCli.admin!, pkp);
 
     switch (option) {
@@ -275,6 +270,12 @@ export class LawCli {
           pkp = await LawCli.handleSelectPkp(lawCli);
         }
         await LawCli.handleManageDelegateesMenu(lawCli, pkp);
+        break;
+      case AdminMenuChoice.ManageWrappedKeys:
+        if (pkp === undefined) {
+          pkp = await LawCli.handleSelectPkp(lawCli);
+        }
+        await LawCli.handleManageWrappedKeysMenu(lawCli, pkp);
         break;
       case AdminMenuChoice.Back:
         await LawCli.showMainMenu(lawCli);
@@ -529,6 +530,28 @@ export class LawCli {
         break;
       case DelegateeConfigureSignerMenuChoice.Back:
         await LawCli.handleDelegateeSettingsMenu(lawCli);
+        break;
+    }
+  }
+
+  private static async handleManageWrappedKeysMenu(lawCli: LawCli, pkp: PkpInfo) {
+    const option = await handleManageWrappedKeysMenu();
+
+    switch (option) {
+      case ManageWrappedKeysMenuChoice.GetWrappedKeys:
+        await handleGetWrappedKeys(lawCli.admin!, pkp);
+        await LawCli.handleManageWrappedKeysMenu(lawCli, pkp);
+        break;
+      case ManageWrappedKeysMenuChoice.MintWrappedKey:
+        await handleMintWrappedKey(lawCli.admin!, pkp);
+        await LawCli.handleManageWrappedKeysMenu(lawCli, pkp);
+        break;
+      case ManageWrappedKeysMenuChoice.RemoveWrappedKey:
+        await handleRemoveWrappedKey(lawCli.admin!, pkp);
+        await LawCli.handleManageWrappedKeysMenu(lawCli, pkp);
+        break;
+      case ManageWrappedKeysMenuChoice.Back:
+        await LawCli.handleAdminMenu(lawCli);
         break;
     }
   }

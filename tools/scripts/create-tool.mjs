@@ -24,6 +24,22 @@ const className = toolName
   .join('');
 
 /**
+ * Prompts the user to select the chain for the tool.
+ */
+async function promptForChain() {
+  const { chain } = await prompts({
+    type: 'select',
+    name: 'chain',
+    message: 'Select the blockchain for this tool:',
+    choices: [
+      { title: 'Ethereum', value: 'ethereum' },
+      { title: 'Solana', value: 'solana' },
+    ],
+  });
+  return chain;
+}
+
+/**
  * Prompts the user to define tool parameters.
  * Each parameter requires a name, type, description, and validation rule.
  * The pkpEthAddress parameter is automatically included.
@@ -138,6 +154,7 @@ async function promptForPolicyParameters() {
 /**
  * Get tool and policy parameters from user input
  */
+const chain = await promptForChain();
 const toolParams = await promptForParameters();
 const policyParams = await promptForPolicyParameters();
 
@@ -541,6 +558,7 @@ const createNetworkTool = (
   description: \`${className} Tool\`,
   ipfsCid: IPFS_CIDS[network].tool,
   defaultPolicyIpfsCid: IPFS_CIDS[network].defaultPolicy,
+  chain: '${chain}',
   parameters: {
     type: {} as ${className}LitActionParameters,
     schema: ${className}LitActionSchema,

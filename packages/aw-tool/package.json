@@ -5,7 +5,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@lit-protocol/constants": "7.0.2",
+    "@lit-protocol/constants": "7.0.6",
     "tslib": "^2.3.0",
     "zod": "^3.24.1"
   },
