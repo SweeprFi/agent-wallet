@@ -10,14 +10,12 @@ In addition to the documentation here, please visit [here](https://developer.lit
 - [Features](#features)
 - [Key Definitions](#key-definitions)
 - [Architecture](#architecture)
-- [Creating a New Tool](#creating-a-new-tool)
+- [Creating a New Tool](#creating-a-new-tool-package)
 - [Getting Started](#getting-started)
+  - [CLI Demo](#cli-users)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
-  - [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+- [Addtional Support](#additional-support)
 
 ## Introduction
 
