@@ -1,0 +1,37 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../aw-tool-uniswap-swap"
+    },
+    {
+      "path": "../aw-tool-sign-eddsa"
+    },
+    {
+      "path": "../aw-tool-sign-ecdsa"
+    },
+    {
+      "path": "../aw-tool-jupiter-swap"
+    },
+    {
+      "path": "../aw-tool-erc20-transfer"
+    },
+    {
+      "path": "../aw-tool-enso"
+    },
+    {
+      "path": "../aw-tool"
+    },
+    {
+      "path": "../aw-tool-registry"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
+}

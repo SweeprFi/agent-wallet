@@ -88,6 +88,7 @@ const processKnownTool = (
     name: registryTool.tool.name,
     description: registryTool.tool.description,
     ipfsCid: registryTool.tool.ipfsCid,
+    chain: registryTool.tool.chain,
     parameters: registryTool.tool.parameters,
     policy: registryTool.tool.policy,
     network: registryTool.network,

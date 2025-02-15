@@ -39,6 +39,12 @@ export enum AwSignerErrorType {
 
   /** Indicates that the Admin address does not match the expected address. */
   ADMIN_ADDRESS_MISMATCH = 'ADMIN_ADDRESS_MISMATCH',
+
+  /** Indicates that the wrapped key minting failed. */
+  ADMIN_WRAPPED_KEY_MINT_FAILED = 'ADMIN_WRAPPED_KEY_MINT_FAILED',
+
+  /** Indicates that the wrapped key was not found. */
+  ADMIN_WRAPPED_KEY_NOT_FOUND = 'ADMIN_WRAPPED_KEY_NOT_FOUND',
 }
 
 /**

@@ -1,11 +1,11 @@
 {
   "name": "@lit-protocol/agent-wallet",
-  "version": "0.1.0-19",
+  "version": "0.1.0-21",
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@lit-protocol/constants": "7.0.2",
+    "@lit-protocol/constants": "7.0.6",
     "@lit-protocol/aw-subagent-openai": "workspace:*",
     "@lit-protocol/aw-signer": "workspace:*",
     "@lit-protocol/aw-tool": "workspace:*",

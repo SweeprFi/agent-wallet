@@ -7,7 +7,13 @@
       "path": "../aw-tool-uniswap-swap"
     },
     {
+      "path": "../aw-tool-sign-eddsa"
+    },
+    {
       "path": "../aw-tool-sign-ecdsa"
+    },
+    {
+      "path": "../aw-tool-jupiter-swap"
     },
     {
       "path": "../aw-tool-erc20-transfer"
@@ -16,10 +22,13 @@
       "path": "../aw-tool-enso"
     },
     {
+      "path": "../aw-tool"
+    },
+    {
       "path": "../aw-tool-registry"
     },
     {
-      "path": "../aw-tool"
+      "path": "../aw-contracts-sdk"
     },
     {
       "path": "./tsconfig.lib.json"

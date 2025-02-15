@@ -116,6 +116,7 @@ const createNetworkTool = (
   config: NetworkConfig
 ): AwTool<EnsoLitActionParameters, EnsoPolicyType> => ({
   name: 'Enso',
+  chain: 'ethereum',
   description: `Enso Tool`,
   ipfsCid: IPFS_CIDS[network].tool,
   defaultPolicyIpfsCid: IPFS_CIDS[network].defaultPolicy,
@@ -142,4 +143,3 @@ export const Enso = Object.entries(NETWORK_CONFIGS).reduce(
     AwTool<EnsoLitActionParameters, EnsoPolicyType>
   >
 );
-

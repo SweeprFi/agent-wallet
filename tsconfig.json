@@ -34,7 +34,16 @@
       "path": "./packages/aw-tool-registry"
     },
     {
+      "path": "./packages/aw-tool-sign-eddsa"
+    },
+    {
+      "path": "./packages/aw-tool-jupiter-swap"
+    },
+    {
       "path": "./packages/aw-tool-enso"
+    },
+    {
+      "path": "./packages/aw-contracts-sdk"
     }
   ]
 }

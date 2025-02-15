@@ -13,6 +13,11 @@ import {
 } from '@lit-protocol/auth-helpers';
 import { LIT_ABILITY } from '@lit-protocol/constants';
 import { ethers } from 'ethers';
+import {
+  DEFAULT_REGISTRY_CONFIG,
+  getPkpToolRegistryContract,
+  getPermittedToolsForDelegatee,
+} from '@lit-protocol/aw-contracts-sdk';
 
 import type {
   LitNetwork,
@@ -31,11 +36,6 @@ import {
 } from './utils/capacity-credit';
 import { LocalStorage } from './utils/storage';
 import { AwSignerError, AwSignerErrorType } from './errors';
-import {
-  DEFAULT_REGISTRY_CONFIG,
-  getPkpToolRegistryContract,
-  getPermittedToolsForDelegatee,
-} from './utils/pkp-tool-registry';
 
 type DelegateeStorageLayout = {
   [ethAddress: string]: {

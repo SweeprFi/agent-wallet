@@ -1,6 +1,6 @@
 {
   "name": "@lit-protocol/law-cli",
-  "version": "0.1.0-19",
+  "version": "0.1.0-21",
   "publishConfig": {
     "access": "public"
   },
@@ -24,7 +24,9 @@
   ],
   "dependencies": {
     "@lit-protocol/agent-wallet": "workspace:*",
-    "@lit-protocol/constants": "7.0.2",
+    "@lit-protocol/constants": "7.0.6",
+    "@lit-protocol/types": "7.0.6",
+    "chalk": "4.1.2",
     "ethers": "v5",
     "node-localstorage": "^3.0.5",
     "prompts": "^2.4.2",
