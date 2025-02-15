@@ -4,14 +4,19 @@ import {
   AUTH_METHOD_SCOPE_VALUES,
   LIT_ABILITY,
 } from '@lit-protocol/constants';
-import { 
-  LitActionResource, 
-  LitPKPResource, 
-  LitAccessControlConditionResource 
+import {
+  LitActionResource,
+  LitPKPResource,
+  LitAccessControlConditionResource,
 } from '@lit-protocol/auth-helpers';
 import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { EthWalletProvider } from '@lit-protocol/lit-auth-client';
 import { ethers } from 'ethers';
+import {
+  DEFAULT_REGISTRY_CONFIG,
+  getPkpToolRegistryContract,
+  getRegisteredToolsAndDelegatees,
+} from '@lit-protocol/aw-contracts-sdk';
 
 import {
   AdminConfig,
@@ -22,15 +27,11 @@ import {
   WrappedKeyInfo,
 } from './types';
 import {
-  DEFAULT_REGISTRY_CONFIG,
-  getPkpToolRegistryContract,
-  getRegisteredToolsAndDelegatees,
-} from './utils/pkp-tool-registry';
-import { 
-  loadWrappedKeysFromStorage, 
-  loadWrappedKeyFromStorage, 
-  removeWrappedKeyFromStorage, 
-  mintWrappedKey } from './wrapped-key';
+  loadWrappedKeysFromStorage,
+  loadWrappedKeyFromStorage,
+  removeWrappedKeyFromStorage,
+  mintWrappedKey,
+} from './wrapped-key';
 import { LocalStorage } from './utils/storage';
 import { AwSignerError, AwSignerErrorType } from './errors';
 
@@ -166,77 +167,83 @@ export class Admin {
     };
   }
 
-    /**
+  /**
    * Gets all wrapped keys from storage.
    * @returns A promise that resolves to an array of wrapped keys.
    */
-    public async getWrappedKeys(): Promise<WrappedKeyInfo[]> {
-      return loadWrappedKeysFromStorage(this.storage);
+  public async getWrappedKeys(): Promise<WrappedKeyInfo[]> {
+    return loadWrappedKeysFromStorage(this.storage);
+  }
+
+  /**
+   * Gets a wrapped key by its ID.
+   * @param id - The ID of the wrapped key.
+   * @returns A promise that resolves to the wrapped key.
+   * @throws If the wrapped key is not found.
+   */
+  public async getWrappedKeyById(id: string): Promise<WrappedKeyInfo> {
+    const wrappedKey = loadWrappedKeyFromStorage(this.storage, id);
+    if (!wrappedKey) {
+      throw new AwSignerError(
+        AwSignerErrorType.ADMIN_WRAPPED_KEY_NOT_FOUND,
+        `Wrapped key with id ${id} not found in storage`
+      );
     }
-  
-    /**
-     * Gets a wrapped key by its ID.
-     * @param id - The ID of the wrapped key.
-     * @returns A promise that resolves to the wrapped key.
-     * @throws If the wrapped key is not found.
-     */
-    public async getWrappedKeyById(id: string): Promise<WrappedKeyInfo> {
-      const wrappedKey = loadWrappedKeyFromStorage(this.storage, id);
-      if (!wrappedKey) {
-        throw new AwSignerError(
-          AwSignerErrorType.ADMIN_WRAPPED_KEY_NOT_FOUND,
-          `Wrapped key with id ${id} not found in storage`
-        );
-      }
-      return wrappedKey;
-    }
-  
-    /**
-     * Removes a wrapped key from storage.
-     * @param id - The ID of the wrapped key to remove.
-     * @returns A promise that resolves to the removed wrapped key.
-     * @throws If the wrapped key is not found.
-     */
-    public async removeWrappedKey(id: string): Promise<WrappedKeyInfo> {
-      const wrappedKey = await this.getWrappedKeyById(id);
-      removeWrappedKeyFromStorage(this.storage, id);
-      return wrappedKey;
-    }
-  
-    /**
-     * Mints a new wrapped key for a PKP.
-     * @param pkpTokenId - The token ID of the PKP.
-     * @returns A promise that resolves to the minted wrapped key.
-     */
-    public async mintWrappedKey(pkpTokenId: string): Promise<WrappedKeyInfo> {
-      const pkp = await this.getPkpByTokenId(pkpTokenId);
-      const authMethod = await EthWalletProvider.authenticate({
-        signer: this.adminWallet,
-        litNodeClient: this.litNodeClient as any,
-      });
-      const pkpSessionSigs = await this.litNodeClient.getPkpSessionSigs({
-        pkpPublicKey: pkp.info.publicKey,
-        chain: "ethereum",
-        authMethods: [authMethod],
-        expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
-        resourceAbilityRequests: [
-          {
-            resource: new LitActionResource("*"),
-            ability: LIT_ABILITY.LitActionExecution,
-          },
-          {
-            resource: new LitPKPResource("*"),
-            ability: LIT_ABILITY.PKPSigning,
-          },
-          { 
-            resource: new LitAccessControlConditionResource("*"),
-            ability: LIT_ABILITY.AccessControlConditionDecryption,
-          }
-        ],
-      });
-  
-      return mintWrappedKey(this.litNodeClient, pkpSessionSigs, pkp.info.tokenId, this.litNetwork, this.storage);
-    }
+    return wrappedKey;
+  }
+
+  /**
+   * Removes a wrapped key from storage.
+   * @param id - The ID of the wrapped key to remove.
+   * @returns A promise that resolves to the removed wrapped key.
+   * @throws If the wrapped key is not found.
+   */
+  public async removeWrappedKey(id: string): Promise<WrappedKeyInfo> {
+    const wrappedKey = await this.getWrappedKeyById(id);
+    removeWrappedKeyFromStorage(this.storage, id);
+    return wrappedKey;
+  }
+
+  /**
+   * Mints a new wrapped key for a PKP.
+   * @param pkpTokenId - The token ID of the PKP.
+   * @returns A promise that resolves to the minted wrapped key.
+   */
+  public async mintWrappedKey(pkpTokenId: string): Promise<WrappedKeyInfo> {
+    const pkp = await this.getPkpByTokenId(pkpTokenId);
+    const authMethod = await EthWalletProvider.authenticate({
+      signer: this.adminWallet,
+      litNodeClient: this.litNodeClient as any,
+    });
+    const pkpSessionSigs = await this.litNodeClient.getPkpSessionSigs({
+      pkpPublicKey: pkp.info.publicKey,
+      chain: 'ethereum',
+      authMethods: [authMethod],
+      expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
+      resourceAbilityRequests: [
+        {
+          resource: new LitActionResource('*'),
+          ability: LIT_ABILITY.LitActionExecution,
+        },
+        {
+          resource: new LitPKPResource('*'),
+          ability: LIT_ABILITY.PKPSigning,
+        },
+        {
+          resource: new LitAccessControlConditionResource('*'),
+          ability: LIT_ABILITY.AccessControlConditionDecryption,
+        },
+      ],
+    });
+
+    return mintWrappedKey(
+      this.litNodeClient,
+      pkpSessionSigs,
+      pkp.info.tokenId,
+      this.litNetwork,
+      this.storage
+    );
+  }
 
   /**
    * Creates an instance of the `Admin` class.
@@ -575,6 +582,7 @@ export class Admin {
 
     const registeredTools = await getRegisteredToolsAndDelegatees(
       this.toolRegistryContract,
+      // @ts-expect-error Types have separate declarations of a private property '_getAdjustedGasLimit'.ts(2345)
       this.litContracts,
       (
         await this.getPkpByTokenId(pkpTokenId)

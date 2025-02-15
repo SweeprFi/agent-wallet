@@ -7,7 +7,7 @@ import type {
   ToolInfo,
   RegisteredToolsResult,
   RegistryToolResult,
-} from '../../types';
+} from './types';
 
 /**
  * Process delegatee policies for a tool

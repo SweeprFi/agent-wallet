@@ -41,6 +41,9 @@
     },
     {
       "path": "./packages/aw-tool-enso"
+    },
+    {
+      "path": "./packages/aw-contracts-sdk"
     }
   ]
 }

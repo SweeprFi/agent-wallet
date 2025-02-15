@@ -1,24 +1,4 @@
-import { LIT_RPC } from '@lit-protocol/constants';
-import { ethers } from 'ethers';
-
-import { ToolRegistryConfig } from '../../types';
-
-export const DEFAULT_REGISTRY_CONFIG: Record<string, ToolRegistryConfig> = {
-  'datil-dev': {
-    rpcUrl: LIT_RPC.CHRONICLE_YELLOWSTONE,
-    contractAddress: '0x2707eabb60D262024F8738455811a338B0ECd3EC',
-  },
-  'datil-test': {
-    rpcUrl: LIT_RPC.CHRONICLE_YELLOWSTONE,
-    contractAddress: '0x525bF2bEb622D7C05E979a8b3fFcDBBEF944450E',
-  },
-  datil: {
-    rpcUrl: LIT_RPC.CHRONICLE_YELLOWSTONE,
-    contractAddress: '0xBDEd44A02b64416C831A0D82a630488A854ab4b1',
-  },
-} as const;
-
-const PKP_TOOL_REGISTRY_ABI = [
+export const PKP_TOOL_REGISTRY_ABI = [
   // Tool Facet Functions
   'function registerTools(uint256 pkpTokenId, string[] calldata toolIpfsCids, bool enabled) external',
   'function removeTools(uint256 pkpTokenId, string[] calldata toolIpfsCids) external',
@@ -94,17 +74,3 @@ const PKP_TOOL_REGISTRY_ABI = [
   'event PolicyParametersRemoved(uint256 indexed pkpTokenId, string toolIpfsCids, address delegatee, string[] parameterNames)',
   'event ToolsUnpermitted(uint256 indexed pkpTokenId, string[] toolIpfsCids, address[] delegatees)',
 ];
-
-export const getPkpToolRegistryContract = (
-  { rpcUrl, contractAddress }: ToolRegistryConfig,
-  signer: ethers.Signer
-) => {
-  const contract = new ethers.Contract(
-    contractAddress,
-    PKP_TOOL_REGISTRY_ABI,
-    new ethers.providers.JsonRpcProvider(rpcUrl)
-  );
-
-  // Connect the signer to allow write operations
-  return contract.connect(signer);
-};
