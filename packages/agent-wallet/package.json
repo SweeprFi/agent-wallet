@@ -1,6 +1,6 @@
 {
   "name": "@lit-protocol/agent-wallet",
-  "version": "0.1.0-19",
+  "version": "0.1.0-21",
   "publishConfig": {
     "access": "public"
   },
