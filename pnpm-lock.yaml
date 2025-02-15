@@ -137,11 +137,18 @@ importers:
       '@lit-protocol/constants':
         specifier: 7.0.6
         version: 7.0.6(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)
+      '@lit-protocol/contracts-sdk':
+        specifier: 7.0.6
+        version: 7.0.6(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)
+      bs58:
+        specifier: ^6.0.0
+        version: 6.0.0
       ethers:
         specifier: v5
         version: 5.7.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    devDependencies:
       tslib:
-        specifier: ^2.3.0
+        specifier: ^2.8.1
         version: 2.8.1
 
   packages/aw-signer:

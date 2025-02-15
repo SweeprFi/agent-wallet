@@ -582,7 +582,6 @@ export class Admin {
 
     const registeredTools = await getRegisteredToolsAndDelegatees(
       this.toolRegistryContract,
-      // @ts-expect-error Types have separate declarations of a private property '_getAdjustedGasLimit'.ts(2345)
       this.litContracts,
       (
         await this.getPkpByTokenId(pkpTokenId)
