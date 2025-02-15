@@ -6,12 +6,9 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "emitDeclarationOnly": false,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "types": ["node"],
-    "paths": {
-      "@lit-protocol/aw-tool-registry": ["../aw-tool-registry/src"]
-    }
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"],
   "references": [
@@ -38,15 +35,6 @@
     },
     {
       "path": "../aw-tool-registry/tsconfig.lib.json"
-    },
-    {
-      "path": "../aw-contracts-sdk/tsconfig.lib.json"
-    },
-    {
-      "path": "../aw-signer/tsconfig.lib.json"
-    },
-    {
-      "path": "../aw-subagent-openai/tsconfig.lib.json"
     }
   ],
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]

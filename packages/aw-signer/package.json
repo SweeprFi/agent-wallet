@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@lit-protocol/auth-helpers": "7.0.6",
+    "@lit-protocol/aw-contracts-sdk": "workspace:*",
     "@lit-protocol/aw-tool": "workspace:*",
     "@lit-protocol/aw-tool-registry": "workspace:*",
     "@lit-protocol/constants": "7.0.6",

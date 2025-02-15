@@ -28,12 +28,6 @@
       "path": "../aw-tool-registry"
     },
     {
-      "path": "../aw-contracts-sdk"
-    },
-    {
-      "path": "../aw-signer"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {
