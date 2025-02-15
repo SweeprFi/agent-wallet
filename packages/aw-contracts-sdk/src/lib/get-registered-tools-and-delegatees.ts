@@ -1,7 +1,8 @@
 import { type LitContracts } from '@lit-protocol/contracts-sdk';
 import { getToolByIpfsCid } from '@lit-protocol/aw-tool-registry';
 import { ethers } from 'ethers';
-import bs58 from 'bs58';
+
+const bs58 = require('bs58');
 
 import type {
   ToolInfo,
