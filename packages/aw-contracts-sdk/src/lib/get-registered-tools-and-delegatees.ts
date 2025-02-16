@@ -2,8 +2,6 @@ import { type LitContracts } from '@lit-protocol/contracts-sdk';
 import { getToolByIpfsCid } from '@lit-protocol/aw-tool-registry';
 import { ethers } from 'ethers';
 
-const bs58 = require('bs58');
-
 import type {
   ToolInfo,
   RegisteredToolsResult,
@@ -155,11 +153,14 @@ export const getRegisteredToolsAndDelegatees = async (
       pkpTokenId
     );
 
+  // Import bs58 dynamically
+  const bs58 = await import('bs58');
+
   // Convert hex CIDs to base58
   const base58PermittedTools = permittedTools.map((hexCid) => {
     // Remove '0x' prefix and convert to Buffer
     const bytes = Buffer.from(hexCid.slice(2), 'hex');
-    return bs58.encode(bytes);
+    return bs58.default.encode(bytes);
   });
 
   // Get tools and their policies from registry contract

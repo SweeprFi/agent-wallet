@@ -1,5 +1,11 @@
+import { isBrowser } from '@lit-protocol/misc';
 import { existsSync } from 'fs';
 import { join } from 'path';
+
+type NetworkCids = {
+  tool: string;
+  defaultPolicy: string;
+};
 
 /**
  * Default development CIDs for different environments.
@@ -24,26 +30,25 @@ const DEFAULT_CIDS = {
 } as const;
 
 /**
- * Tries to read the IPFS CIDs from the build output.
+ * Tries to read the IPFS CIDs from the build output for node.js environments or simply return the default CIDs.
  * Falls back to default development CIDs if the file is not found or cannot be read.
  * @type {Record<keyof typeof DEFAULT_CIDS, NetworkCids>}
  */
-let deployedCids = DEFAULT_CIDS;
-
-const ipfsPath = join(__dirname, '../../../dist/ipfs.json');
-if (existsSync(ipfsPath)) {
-  // We know this import will work because we checked the file exists
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const ipfsJson = require(ipfsPath);
-  deployedCids = ipfsJson;
-} else {
-  throw new Error(
-    'Failed to read ipfs.json. You should only see this error if you are running the monorepo locally. You should run pnpm deploy:tools to update the ipfs.json files.'
-  );
-}
-
-/**
- * IPFS CIDs for each network's Lit Action.
- * @type {Record<keyof typeof DEFAULT_CIDS, NetworkCids>}
- */
-export const IPFS_CIDS = deployedCids;
+export const IPFS_CIDS: Record<keyof typeof DEFAULT_CIDS, NetworkCids> =
+  (() => {
+    if (isBrowser()) {
+      return DEFAULT_CIDS as Record<keyof typeof DEFAULT_CIDS, NetworkCids>;
+    } else {
+      let deployedCids = DEFAULT_CIDS;
+      const ipfsPath = join(__dirname, '../../../dist/ipfs.json');
+      if (existsSync(ipfsPath)) {
+        const ipfsJson = require(ipfsPath);
+        deployedCids = ipfsJson;
+      } else {
+        throw new Error(
+          'Failed to read ipfs.json. You should only see this error if you are running the monorepo locally. You should run pnpm deploy:tools to update the ipfs.json files.'
+        );
+      }
+      return deployedCids;
+    }
+  })();
