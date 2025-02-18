@@ -61,5 +61,8 @@
         }
       }
     }
+  },
+  "dependencies": {
+    "@lit-protocol/misc": "^7.0.6"
   }
 }
