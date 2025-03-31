@@ -44,6 +44,9 @@
     },
     {
       "path": "./packages/aw-contracts-sdk"
+    },
+    {
+      "path": "./packages/aw-tool-cctp-usdc"
     }
   ]
 }
