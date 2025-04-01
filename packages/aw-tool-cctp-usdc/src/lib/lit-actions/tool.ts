@@ -136,7 +136,7 @@ declare global {
     const tokenInterface = new ethers.utils.Interface(['function allowance(address owner, address spender) view returns (uint256)']);
     const tokenContract = new ethers.Contract(tokenIn, tokenInterface, srcProvider);
     const amt = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[params.srcChain])
-    console.log("Approved amount after tx:", amt);
+    console.log("Approved amount after tx:", amt.toString());
     // ------------------------------------------------------------
 
     // Burn USDC token

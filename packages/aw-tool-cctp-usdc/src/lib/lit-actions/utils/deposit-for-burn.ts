@@ -1,3 +1,4 @@
+import { BigNumber } from 'ethers';
 import { CHAIN_IDS_TO_TOKEN_MESSENGER, CHAIN_IDS_TO_USDC_ADDRESSES, DESTINATION_DOMAINS } from './constants';
 
 const cctpInterface = new ethers.utils.Interface([
@@ -7,12 +8,12 @@ const cctpInterface = new ethers.utils.Interface([
 /**
  * Estimates the gas limit for the transaction.
  * @param {any} provider - The Ethereum provider.
- * @param {any} amount - The amount to transfer.
+ * @param {BigNumber} amount - The amount to transfer.
  * @returns {Promise<any>} Estimated gas limit.
  */
 const estimateDepositForBurnGasLimit = async (
     provider: any,
-    amount: any,
+    amount: BigNumber,
     srcChain: number,
     dstChain: number,
     pkpEthAddress: string
@@ -32,7 +33,7 @@ const estimateDepositForBurnGasLimit = async (
             pkpEthAddress,
             CHAIN_IDS_TO_USDC_ADDRESSES[srcChain],
             "0x0000000000000000000000000000000000000000000000000000000000000000",
-            amount - 1n,
+            amount.sub(BigNumber.from(1)),
             1000,
             { from: pkpEthAddress }
         );
@@ -50,12 +51,12 @@ const estimateDepositForBurnGasLimit = async (
 /**
  * Creates and signs the transaction.
  * @param {any} gasLimit - The gas limit for the transaction.
- * @param {any} amount - The amount to transfer.
+ * @param {BigNumber} amount - The amount to transfer.
  * @param {any} gasData - Gas data (maxFeePerGas, maxPriorityFeePerGas, nonce).
  * @returns {Promise<string>} The signed transaction.
  */
 const createAndSignDepositForBurnTransaction = async (    
-    amount: any,
+    amount: BigNumber,
     gasLimit: any,
     gasData: any,
     srcChain: number,
@@ -72,7 +73,7 @@ const createAndSignDepositForBurnTransaction = async (
             pkp.ethAddress,
             CHAIN_IDS_TO_USDC_ADDRESSES[srcChain],
             "0x0000000000000000000000000000000000000000000000000000000000000000",
-            amount - 1n,
+            amount.sub(BigNumber.from(1)),
             1000,
         ]),
         value: '0x0',
