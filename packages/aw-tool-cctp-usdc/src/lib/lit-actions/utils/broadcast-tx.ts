@@ -4,7 +4,7 @@
  * @returns {Promise<string>} The transaction hash.
  */
 export const broadcastTransaction = async (provider: any, signedTx: string) => {
-    console.log('Broadcasting transfer...');
+    console.log('Broadcasting tx...');
     return await Lit.Actions.runOnce(
         { waitForResponse: true, name: 'txnSender' },
         async () => {

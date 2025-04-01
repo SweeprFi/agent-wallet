@@ -49,7 +49,7 @@ export const mintUSDC = async (
     pkp: any
 ) => {
     // dstProvider, params.dstChain, attestation, pkp
-    console.log(`Creating and signing transaction...`);
+    console.log(`Creating and signing mint transaction...`);
     const gasLimit = await estimateMintUSDCGasLimit(provider, pkp.ethAddress, dstChain, attestation);
     const gasData = await getGasData(provider, pkp.ethAddress);
 
@@ -81,7 +81,7 @@ export const mintUSDC = async (
         })
     );
 
-    console.log("signed approval tx:", signedTx);
+    console.log("signed mint tx:", signedTx);
     const txHash = await broadcastTransaction(provider, signedTx);
     console.log(`Mint transaction hash: ${txHash}`);
 };

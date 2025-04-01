@@ -53,12 +53,12 @@ export const approveUSDC = async (
     const tokenContract = new ethers.Contract(tokenIn, TOKEN_INTERFACE, provider);
     const currentAllowance = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[params.srcChain])
     console.log("Amount parameter:", amount.toString());
-    console.log("Approved amount after tx:", currentAllowance.toString());
+    console.log("Approved amount:", currentAllowance.toString());
     const approvalRequired = currentAllowance.lt(amount);
     let txHash = 'No approval required';
 
     if (approvalRequired) {
-        console.log(`Creating and signing transaction...`);
+        console.log(`Creating and signing approval transaction...`);
         const gasLimit = await estimateApproveGasLimit(provider, tokenIn, pkp.ethAddress, amount, pkp);
         const gasData = await getGasData(provider, pkp.ethAddress);
 

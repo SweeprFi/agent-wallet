@@ -11,11 +11,9 @@ export const retrieveAttestation = async (
         try {
             const response = await axios.get(url);
             if (response.data?.messages?.[0]?.status === "complete") {
-                console.log("Attestation retrieved!");
-                console.log("Response:", response);
-                console.log("Response data:", response.data);
-
-                return response.data.messages[0];
+                const attestation = response.data.messages[0];
+                console.log("Attestation Retrieved!:", attestation);
+                return attestation;
             }
             console.log("Waiting for attestation...");
             await new Promise((resolve) => setTimeout(resolve, 5000));

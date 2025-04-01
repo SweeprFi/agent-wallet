@@ -60,7 +60,7 @@ export const depositForBurn = async (
     dstChain: number,
     pkp: any
 ) => {
-    console.log(`Creating and signing transaction...`);
+    console.log(`Creating and signing burn transaction...`);
     const burnRecipient = `0x${pkp.ethAddress.replace(/^0x/, "").padStart(64, "0")}`;
     const gasLimit = await estimateDepositForBurnGasLimit(provider, amount, srcChain, dstChain, pkp);
     const gasData = await getGasData(provider, pkp.ethAddress);
@@ -100,7 +100,7 @@ export const depositForBurn = async (
             v: JSON.parse(depositSig).v,
         })
     );
-    console.log("signed approval tx:", signedTx);
+    console.log("signed burn tx:", signedTx);
     const txHash = await broadcastTransaction(provider, signedTx);
     console.log(`DepositForBurn transaction hash: ${txHash}`);
     return txHash;
