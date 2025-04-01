@@ -6,23 +6,12 @@ import {
 } from '@lit-protocol/aw-tool';
 
 import { getTokenInfo } from './utils/get-erc20-info';
-import { CHAIN_IDS_TO_USDC_ADDRESSES, CHAIN_IDS_TO_TOKEN_MESSENGER } from './utils/constants';
+import { CHAIN_IDS_TO_USDC_ADDRESSES } from './utils/constants';
 
-import { getGasData } from './utils/get-gas-data';
-import { broadcastTransaction } from './utils/broadcast-tx';
-import {
-  estimateApproveGasLimit,
-  createAndSignApproveTransaction
-} from './utils/approve-usdc';
-import {
-  estimateDepositForBurnGasLimit,
-  createAndSignDepositForBurnTransaction
-} from './utils/deposit-for-burn';
+import { approveUSDC } from './utils/approve-usdc';
+import { depositForBurn } from './utils/deposit-for-burn';
 import { retrieveAttestation } from './utils/retrieve-attestation';
-import {
-  estimateMintUSDCGasLimit,
-  createAndSignMintUSDCTransaction,
-} from './utils/mint-usdc';
+import { mintUSDC } from './utils/mint-usdc';
 
 declare global {
   // Required Inputs
@@ -62,13 +51,7 @@ declare global {
     const delegateeAddress = ethers.utils.getAddress(LitAuth.authSigAddress);
     const toolIpfsCid = LitAuth.actionIpfsIds[0];
 
-    const srcProvider = new ethers.providers.JsonRpcProvider(params.rpcSrcUrl);
-    const dstProvider = new ethers.providers.JsonRpcProvider(params.rpcDstUrl);
-    const balanceDst = await dstProvider.getBalance(params.pkpEthAddress);
-
-    const pkpToolRegistryContract = await getPkpToolRegistryContract(
-      PKP_TOOL_REGISTRY_ADDRESS
-    );
+    const pkpToolRegistryContract = await getPkpToolRegistryContract(PKP_TOOL_REGISTRY_ADDRESS);
     const pkp = await getPkpInfo(params.pkpEthAddress);
 
     const toolPolicy = await fetchToolPolicyFromRegistry(
@@ -78,12 +61,10 @@ declare global {
       toolIpfsCid
     );
 
-    const tokenSrcInfo = await getTokenInfo(
-      srcProvider,
-      tokenIn,
-      params.amount,
-      pkp.ethAddress
-    );
+    const srcProvider = new ethers.providers.JsonRpcProvider(params.rpcSrcUrl);
+    const dstProvider = new ethers.providers.JsonRpcProvider(params.rpcDstUrl);
+    const balanceDst = await dstProvider.getBalance(pkp.ethAddress);
+    const tokenSrcInfo = await getTokenInfo(srcProvider, tokenIn, params.amount, pkp.ethAddress);
 
     if (
       toolPolicy.enabled &&
@@ -104,110 +85,31 @@ declare global {
         },
       });
     } else {
-      console.log(
-        `No policy found for tool ${toolIpfsCid} on PKP ${pkp.tokenId} for delegatee ${delegateeAddress}`
-      );
+      console.log(`No policy found for tool ${toolIpfsCid} on PKP ${pkp.tokenId} for delegatee ${delegateeAddress}`);
     }
 
-    let gasData;
-    let gasLimit;
-    let signedTx;
-    let txHash;
     let burnTxHash = params.burnTx;
-
     if (!burnTxHash) {
-      // Cheking approval amount ------------------------------------------------
-      const tokenInterface = new ethers.utils.Interface(['function allowance(address owner, address spender) view returns (uint256)']);
-      const tokenContract = new ethers.Contract(tokenIn, tokenInterface, srcProvider);
-      const currentAllowance = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[params.srcChain])
-      console.log("Amount parameter:", tokenSrcInfo.amount.toString());
-      console.log("Approved amount after tx:", currentAllowance.toString());
-      const approvalRequired = currentAllowance.lt(tokenSrcInfo.amount);
-
       // Approve USDC token ------------------------------------------------------
-      if (approvalRequired) {
-        console.log(`Approving USDC token...`);
-        gasData = await getGasData(srcProvider, pkp.ethAddress);
-        gasLimit = await estimateApproveGasLimit(
-          srcProvider,
-          tokenIn,
-          params.pkpEthAddress,
-          tokenSrcInfo.amount,
-          pkp
-        );
-        signedTx = await createAndSignApproveTransaction(
-          tokenIn,
-          tokenSrcInfo.amount,
-          gasLimit,
-          gasData,
-          params.srcChain,
-          pkp
-        );
-
-        console.log("signed approval tx:", signedTx);
-        txHash = await broadcastTransaction(srcProvider, signedTx);
-        console.log(`Approval transaction hash: ${txHash}`);
-      }
-
-      // Burn USDC token
-      console.log(`Depositing USDC token for burn...`);
-      gasData = await getGasData(srcProvider, pkp.ethAddress);
-      gasLimit = await estimateDepositForBurnGasLimit(
-        srcProvider,
-        tokenSrcInfo.amount,
-        params.srcChain,
-        params.dstChain,
-        pkp
-      );
-      signedTx = await createAndSignDepositForBurnTransaction(
-        tokenSrcInfo.amount,
-        gasLimit,
-        gasData,
-        params.srcChain,
-        params.dstChain,
-        pkp
-      );
-
-      burnTxHash = await broadcastTransaction(srcProvider, signedTx);
-      console.log(`DepositForBurn transaction hash: ${burnTxHash}`);
+      await approveUSDC(srcProvider, tokenIn, tokenSrcInfo.amount, params.srcChain, pkp);
+      // Deposit for Burn USDC token ---------------------------------------------
+      await depositForBurn(srcProvider, tokenSrcInfo.amount, params.srcChain, params.dstChain, pkp);
     }
 
-    // Retrieve attestation
-    const sourceChainId = params.srcChain;
-    const attestation = await retrieveAttestation(burnTxHash, sourceChainId);
+    // Retrieve attestation ------------------------------------------------------
+    const attestation = await retrieveAttestation(burnTxHash, params.srcChain); // TODO: Add attestation to Lit.Actions.setResponse
     console.log(`Attestation: ${JSON.stringify(attestation)}`);
-    
+
     const minBalance = ethers.utils.parseUnits("0.01"); // 0.01 native token
     if (balanceDst < minBalance) {
       throw new Error("Insufficient native token for gas fees");
     }
 
     // Mint USDC token on destination chain
-    console.log(`Minting USDC token on destination chain...`);
-    gasData = await getGasData(dstProvider, pkp.ethAddress);
-    gasLimit = await estimateMintUSDCGasLimit(
-      dstProvider,
-      pkp.ethAddress,
-      params.dstChain,
-      attestation
-    );
-    signedTx = await createAndSignMintUSDCTransaction(
-      gasLimit,
-      gasData,
-      params.dstChain,
-      attestation,
-      pkp
-    );
-    txHash = await broadcastTransaction(dstProvider, signedTx);
-
-    // Set response
-    console.log(`Mint transaction hash: ${txHash}`);
+    await mintUSDC(dstProvider, params.dstChain, attestation, pkp);
 
     Lit.Actions.setResponse({
-      response: JSON.stringify({
-        response: 'Success!',
-        status: 'success',
-      }),
+      response: JSON.stringify({ response: 'Success!', status: 'success', }),
     });
   } catch (err: any) {
     console.error('Error:', err);

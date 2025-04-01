@@ -12,6 +12,9 @@ export const retrieveAttestation = async (
             const response = await axios.get(url);
             if (response.data?.messages?.[0]?.status === "complete") {
                 console.log("Attestation retrieved!");
+                console.log("Response:", response);
+                console.log("Response data:", response.data);
+
                 return response.data.messages[0];
             }
             console.log("Waiting for attestation...");

@@ -73,8 +73,7 @@ const CctpUsdcLitActionSchema = z.object({
  * These descriptions are designed to be consumed by LLMs (Language Learning Models) to understand the required parameters.
  */
 const CctpUsdcLitActionParameterDescriptions = {
-  pkpEthAddress:
-    'The Ethereum address of the PKP that will be used to perform the action.',
+  pkpEthAddress: 'The Ethereum address of the PKP that will be used to perform the action.',
   rpcSrcUrl: 'RPC URL of the source chain',
   rpcDstUrl: 'RPC URL of the destination chain',
   srcChain: 'Source chain to transfer',
