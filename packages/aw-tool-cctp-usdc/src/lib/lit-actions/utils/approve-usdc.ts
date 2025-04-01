@@ -91,6 +91,17 @@ export const approveUSDC = async (
         );
         console.log("signed approval tx:", signedTx);
         txHash = await broadcastTransaction(provider, signedTx);
+
+         // Wait for approval confirmation
+        console.log('Waiting for approval confirmation...');
+        const approvalConfirmation = await provider.waitForTransaction(
+            txHash,
+            1
+        );
+
+        if (approvalConfirmation.status === 0) {
+            throw new Error('Approval transaction failed');
+        }
     }
 
     console.log(`Approval transaction hash: ${txHash}`);

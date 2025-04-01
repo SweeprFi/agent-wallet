@@ -28,6 +28,9 @@ declare global {
 
 (async () => {
   try {
+    const startTime = Date.now();
+    console.log('time-elapsed:', Date.now() - startTime);
+
     console.log(`Using Lit Network: ${LIT_NETWORK}`);
     console.log(
       `Using PKP Tool Registry Address: ${PKP_TOOL_REGISTRY_ADDRESS}`
@@ -90,23 +93,30 @@ declare global {
 
     let burnTxHash = params.burnTx;
     if (!burnTxHash) {
+      console.log('time-elapsed-1:', Date.now() - startTime);
       // Approve USDC token ------------------------------------------------------
       await approveUSDC(srcProvider, tokenIn, tokenSrcInfo.amount, params.srcChain, pkp);
+      console.log('time-elapsed-2:', Date.now() - startTime);
       // Deposit for Burn USDC token ---------------------------------------------
       burnTxHash = await depositForBurn(srcProvider, tokenSrcInfo.amount, params.srcChain, params.dstChain, pkp);
     }
 
+    console.log('time-elapsed-3:', Date.now() - startTime);
     // Retrieve attestation ------------------------------------------------------
     const attestation = await retrieveAttestation(burnTxHash, params.srcChain); // TODO: Add attestation to Lit.Actions.setResponse
     console.log(`Attestation: ${JSON.stringify(attestation)}`);
-
+    
+    console.log('time-elapsed-4:', Date.now() - startTime);
     const minBalance = ethers.utils.parseUnits("0.01"); // 0.01 native token
     if (balanceDst < minBalance) {
       throw new Error("Insufficient native token for gas fees");
     }
 
+    console.log('time-elapsed-5:', Date.now() - startTime);
     // Mint USDC token on destination chain
     await mintUSDC(dstProvider, params.dstChain, attestation, pkp);
+
+    console.log('time-elapsed-6:', Date.now() - startTime);
 
     Lit.Actions.setResponse({
       response: JSON.stringify({ response: 'Success!', status: 'success', }),

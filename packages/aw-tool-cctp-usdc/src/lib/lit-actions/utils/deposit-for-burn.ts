@@ -103,5 +103,17 @@ export const depositForBurn = async (
     console.log("signed burn tx:", signedTx);
     const txHash = await broadcastTransaction(provider, signedTx);
     console.log(`DepositForBurn transaction hash: ${txHash}`);
+
+     // Wait for approval confirmation
+     console.log('Waiting for burn confirmation...');
+     const burnConfirmation = await provider.waitForTransaction(
+         txHash,
+         1
+     );
+
+     if (burnConfirmation.status === 0) {
+         throw new Error('Burn transaction failed');
+     }
+
     return txHash;
 };
