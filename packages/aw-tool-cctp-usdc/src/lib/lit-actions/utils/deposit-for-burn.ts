@@ -38,7 +38,7 @@ const estimateDepositForBurnGasLimit = async (
             CHAIN_IDS_TO_USDC_ADDRESSES[srcChain],
             "0x0000000000000000000000000000000000000000000000000000000000000000",
             amount.sub(BigNumber.from(1)),
-            1000,
+            2000,
             { from: pkp.ethAddress }
         );
         console.log('Estimated gas limit:', estimatedGas.toString());
@@ -82,7 +82,7 @@ const createAndSignDepositForBurnTransaction = async (
             CHAIN_IDS_TO_USDC_ADDRESSES[srcChain],
             "0x0000000000000000000000000000000000000000000000000000000000000000",
             amount.sub(BigNumber.from(1)),
-            1000,
+            2000,
         ]),
         value: '0x0',
         gasLimit: gasLimit.toHexString(),

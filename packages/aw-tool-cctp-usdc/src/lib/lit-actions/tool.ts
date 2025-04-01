@@ -33,11 +33,9 @@ declare global {
     srcChain: keyof typeof CHAIN_IDS_TO_USDC_ADDRESSES;
     dstChain: keyof typeof CHAIN_IDS_TO_USDC_ADDRESSES;
     amount: string;
+    burnTx: string;
   };
 }
-
-// TODO: add an optional parameter that is the attestation transaction hash.
-// if this parameter is present, we can jump directly to the minting step.
 
 (async () => {
   try {
@@ -111,69 +109,74 @@ declare global {
       );
     }
 
-    let gasData = await getGasData(srcProvider, pkp.ethAddress);
+    let gasData;
     let gasLimit;
     let signedTx;
     let txHash;
+    let burnTxHash = params.burnTx;
 
-    // Cheking approval amount ------------------------------------------------
-    const tokenInterface = new ethers.utils.Interface(['function allowance(address owner, address spender) view returns (uint256)']);
-    const tokenContract = new ethers.Contract(tokenIn, tokenInterface, srcProvider);
-    const currentAllowance = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[params.srcChain])
-    console.log("Amount parameter:", tokenSrcInfo.amount.toString());
-    console.log("Approved amount after tx:", currentAllowance.toString());
-    const approvalRequired = currentAllowance.lt(tokenSrcInfo.amount);
-    
-    // Approve USDC token ------------------------------------------------------
-    if(approvalRequired) {
-      console.log(`Approving USDC token...`);
-      gasLimit = await estimateApproveGasLimit(
+    if (!burnTxHash) {
+      // Cheking approval amount ------------------------------------------------
+      const tokenInterface = new ethers.utils.Interface(['function allowance(address owner, address spender) view returns (uint256)']);
+      const tokenContract = new ethers.Contract(tokenIn, tokenInterface, srcProvider);
+      const currentAllowance = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[params.srcChain])
+      console.log("Amount parameter:", tokenSrcInfo.amount.toString());
+      console.log("Approved amount after tx:", currentAllowance.toString());
+      const approvalRequired = currentAllowance.lt(tokenSrcInfo.amount);
+
+      // Approve USDC token ------------------------------------------------------
+      if (approvalRequired) {
+        console.log(`Approving USDC token...`);
+        gasData = await getGasData(srcProvider, pkp.ethAddress);
+        gasLimit = await estimateApproveGasLimit(
+          srcProvider,
+          tokenIn,
+          params.pkpEthAddress,
+          tokenSrcInfo.amount,
+          pkp
+        );
+        signedTx = await createAndSignApproveTransaction(
+          tokenIn,
+          tokenSrcInfo.amount,
+          gasLimit,
+          gasData,
+          params.srcChain,
+          pkp
+        );
+
+        console.log("signed approval tx:", signedTx);
+        txHash = await broadcastTransaction(srcProvider, signedTx);
+        console.log(`Approval transaction hash: ${txHash}`);
+      }
+
+      // Burn USDC token
+      console.log(`Depositing USDC token for burn...`);
+      gasData = await getGasData(srcProvider, pkp.ethAddress);
+      gasLimit = await estimateDepositForBurnGasLimit(
         srcProvider,
-        tokenIn,
-        params.pkpEthAddress,
         tokenSrcInfo.amount,
+        params.srcChain,
+        params.dstChain,
         pkp
       );
-      signedTx = await createAndSignApproveTransaction(
-        tokenIn,
+      signedTx = await createAndSignDepositForBurnTransaction(
         tokenSrcInfo.amount,
         gasLimit,
         gasData,
         params.srcChain,
+        params.dstChain,
         pkp
       );
 
-      console.log("signed approval tx:", signedTx);
-      txHash = await broadcastTransaction(srcProvider, signedTx);
-      console.log(`Approval transaction hash: ${txHash}`);
+      burnTxHash = await broadcastTransaction(srcProvider, signedTx);
+      console.log(`DepositForBurn transaction hash: ${burnTxHash}`);
     }
-
-    // Burn USDC token
-    console.log(`Depositing USDC token for burn...`);
-    gasLimit = await estimateDepositForBurnGasLimit(
-      srcProvider,
-      tokenSrcInfo.amount,
-      params.srcChain,
-      params.dstChain,
-      pkp
-    );
-    signedTx = await createAndSignDepositForBurnTransaction(
-      tokenSrcInfo.amount,
-      gasLimit,
-      gasData,
-      params.srcChain,
-      params.dstChain,
-      pkp
-    );
-
-    txHash = await broadcastTransaction(srcProvider, signedTx);
-    console.log(`DepositForBurn transaction hash: ${txHash}`);
 
     // Retrieve attestation
     const sourceChainId = params.srcChain;
-    const attestation = await retrieveAttestation(txHash, sourceChainId);
+    const attestation = await retrieveAttestation(burnTxHash, sourceChainId);
     console.log(`Attestation: ${JSON.stringify(attestation)}`);
-
+    
     const minBalance = ethers.utils.parseUnits("0.01"); // 0.01 native token
     if (balanceDst < minBalance) {
       throw new Error("Insufficient native token for gas fees");

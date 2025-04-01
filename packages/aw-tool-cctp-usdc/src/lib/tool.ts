@@ -17,6 +17,7 @@ import { IPFS_CIDS } from './ipfs';
  * @property {string} srcChain - Source chain to transfer
  * @property {string} dstChain - Destination chain to transfer
  * @property {number} amount - Amount to be transfered
+ * @property {string} burnTx - Burn transaction hash or empty string
  */
 export interface CctpUsdcLitActionParameters {
   pkpEthAddress: string;
@@ -25,6 +26,7 @@ export interface CctpUsdcLitActionParameters {
   srcChain: string;
   dstChain: string;
   amount: string;
+  burnTx: string;
 }
 
 /**
@@ -62,7 +64,8 @@ const CctpUsdcLitActionSchema = z.object({
     .regex(
       /^\d*\.?\d+$/,
       'Must be a valid decimal number as a string (e.g. "1.5" or "100")'
-    )
+    ),
+    burnTx: z.string(),
 });
 
 /**
@@ -76,7 +79,8 @@ const CctpUsdcLitActionParameterDescriptions = {
   rpcDstUrl: 'RPC URL of the destination chain',
   srcChain: 'Source chain to transfer',
   dstChain: 'Destination chain to transfer',
-  amount: 'Amount to be transfer'
+  amount: 'Amount to be transfer',
+  burnTx: 'Burn transaction hash or empty string',
 } as const;
 
 /**
