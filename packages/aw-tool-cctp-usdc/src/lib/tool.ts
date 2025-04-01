@@ -12,9 +12,11 @@ import { IPFS_CIDS } from './ipfs';
 /**
  * Parameters required for the CctpUsdc Lit Action.
  * @property {string} pkpEthAddress - The Ethereum address of the PKP.
+ * @property {string} rpcSrcUrl - RPC URL of the source chain
+ * @property {string} rpcDstUrl - RPC URL of the destination chain
  * @property {string} srcChain - Source chain to transfer
  * @property {string} dstChain - Destination chain to transfer
- * @property {number} amount - Amount to be transfer
+ * @property {number} amount - Amount to be transfered
  */
 export interface CctpUsdcLitActionParameters {
   pkpEthAddress: string;
@@ -108,7 +110,7 @@ const createNetworkTool = (
   config: NetworkConfig
 ): AwTool<CctpUsdcLitActionParameters, CctpUsdcPolicyType> => ({
   name: 'CctpUsdc',
-  description: `A Lit Action that send USDC cross-chain using CTTP`,
+  description: `A Lit Action for sending USDC cross-chain using CTTP`,
   ipfsCid: IPFS_CIDS[network].tool,
   defaultPolicyIpfsCid: IPFS_CIDS[network].defaultPolicy,
   chain: 'ethereum',

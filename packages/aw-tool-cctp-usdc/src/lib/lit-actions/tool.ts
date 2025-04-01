@@ -6,7 +6,7 @@ import {
 } from '@lit-protocol/aw-tool';
 
 import { getTokenInfo } from './utils/get-erc20-info';
-import { CHAIN_IDS_TO_USDC_ADDRESSES } from './utils/constants';
+import { CHAIN_IDS_TO_USDC_ADDRESSES, CHAIN_IDS_TO_TOKEN_MESSENGER } from './utils/constants';
 
 import { getGasData } from './utils/get-gas-data';
 import { broadcastTransaction } from './utils/broadcast-tx';
@@ -128,8 +128,16 @@ declare global {
       pkp
     );
 
+    console.log("signed approval tx:", signedTx);
     let txHash = await broadcastTransaction(srcProvider, signedTx);
-    console.log(`Approve transaction hash: ${txHash}`);
+    console.log(`Approval transaction hash: ${txHash}`);
+
+    // VERIFYING ------------------------------------------------
+    const tokenInterface = new ethers.utils.Interface(['function allowance(address owner, address spender) view returns (uint256)']);
+    const tokenContract = new ethers.Contract(tokenIn, tokenInterface, srcProvider);
+    const amt = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[params.srcChain])
+    console.log("Approved amount after tx:", amt);
+    // ------------------------------------------------------------
 
     // Burn USDC token
     console.log(`Depositing USDC token for burn...`);
