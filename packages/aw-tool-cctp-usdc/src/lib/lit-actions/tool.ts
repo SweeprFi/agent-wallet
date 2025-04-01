@@ -93,7 +93,7 @@ declare global {
       // Approve USDC token ------------------------------------------------------
       await approveUSDC(srcProvider, tokenIn, tokenSrcInfo.amount, params.srcChain, pkp);
       // Deposit for Burn USDC token ---------------------------------------------
-      await depositForBurn(srcProvider, tokenSrcInfo.amount, params.srcChain, params.dstChain, pkp);
+      burnTxHash = await depositForBurn(srcProvider, tokenSrcInfo.amount, params.srcChain, params.dstChain, pkp);
     }
 
     // Retrieve attestation ------------------------------------------------------

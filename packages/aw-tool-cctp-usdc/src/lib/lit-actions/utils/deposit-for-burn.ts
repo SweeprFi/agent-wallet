@@ -103,4 +103,5 @@ export const depositForBurn = async (
     console.log("signed approval tx:", signedTx);
     const txHash = await broadcastTransaction(provider, signedTx);
     console.log(`DepositForBurn transaction hash: ${txHash}`);
+    return txHash;
 };
