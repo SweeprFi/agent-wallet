@@ -57,7 +57,7 @@ const createAndSignMintUSDCTransaction = async (
 ) => {
     console.log(`Creating and signing transaction...`);
 
-    const depositForBurnTx = {
+    const mintTx = {
         to: CHAIN_IDS_TO_MESSAGE_TRANSMITTER[dstChain],
         data: cctpInterface.encodeFunctionData('receiveMessage', [
             attestation.message,
@@ -75,18 +75,18 @@ const createAndSignMintUSDCTransaction = async (
     console.log(`Signing mint with PKP public key: ${pkp.publicKey}...`);
     const mintSig = await Lit.Actions.signAndCombineEcdsa({
         toSign: ethers.utils.arrayify(
-            ethers.utils.keccak256(ethers.utils.serializeTransaction(depositForBurnTx))
+            ethers.utils.keccak256(ethers.utils.serializeTransaction(mintTx))
         ),
         publicKey: pkp.publicKey.startsWith('0x')
             ? pkp.publicKey.slice(2)
             : pkp.publicKey,
-        sigName: 'depositForBurnSig',
+        sigName: 'mintSig',
     });
 
-    console.log(`Transaction signed`);
+    console.log(`Mint transaction signed`);
 
     return ethers.utils.serializeTransaction(
-        depositForBurnTx,
+        mintTx,
         ethers.utils.joinSignature({
             r: '0x' + JSON.parse(mintSig).r.substring(2),
             s: '0x' + JSON.parse(mintSig).s,

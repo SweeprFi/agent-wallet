@@ -36,6 +36,9 @@ declare global {
   };
 }
 
+// TODO: add an optional parameter that is the attestation transaction hash.
+// if this parameter is present, we can jump directly to the minting step.
+
 (async () => {
   try {
     console.log(`Using Lit Network: ${LIT_NETWORK}`);
@@ -109,35 +112,41 @@ declare global {
     }
 
     let gasData = await getGasData(srcProvider, pkp.ethAddress);
+    let gasLimit;
+    let signedTx;
+    let txHash;
 
-    // Approve USDC token
-    console.log(`Approving USDC token...`);
-    let gasLimit = await estimateApproveGasLimit(
-      srcProvider,
-      tokenIn,
-      params.pkpEthAddress,
-      tokenSrcInfo.amount,
-      pkp.ethAddress
-    );
-    let signedTx = await createAndSignApproveTransaction(
-      tokenIn,
-      tokenSrcInfo.amount,
-      gasLimit,
-      gasData,
-      params.srcChain,
-      pkp
-    );
-
-    console.log("signed approval tx:", signedTx);
-    let txHash = await broadcastTransaction(srcProvider, signedTx);
-    console.log(`Approval transaction hash: ${txHash}`);
-
-    // VERIFYING ------------------------------------------------
+    // Cheking approval amount ------------------------------------------------
     const tokenInterface = new ethers.utils.Interface(['function allowance(address owner, address spender) view returns (uint256)']);
     const tokenContract = new ethers.Contract(tokenIn, tokenInterface, srcProvider);
-    const amt = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[params.srcChain])
-    console.log("Approved amount after tx:", amt.toString());
-    // ------------------------------------------------------------
+    const currentAllowance = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[params.srcChain])
+    console.log("Amount parameter:", tokenSrcInfo.amount.toString());
+    console.log("Approved amount after tx:", currentAllowance.toString());
+    const approvalRequired = currentAllowance.lt(tokenSrcInfo.amount);
+    
+    // Approve USDC token ------------------------------------------------------
+    if(approvalRequired) {
+      console.log(`Approving USDC token...`);
+      gasLimit = await estimateApproveGasLimit(
+        srcProvider,
+        tokenIn,
+        params.pkpEthAddress,
+        tokenSrcInfo.amount,
+        pkp
+      );
+      signedTx = await createAndSignApproveTransaction(
+        tokenIn,
+        tokenSrcInfo.amount,
+        gasLimit,
+        gasData,
+        params.srcChain,
+        pkp
+      );
+
+      console.log("signed approval tx:", signedTx);
+      txHash = await broadcastTransaction(srcProvider, signedTx);
+      console.log(`Approval transaction hash: ${txHash}`);
+    }
 
     // Burn USDC token
     console.log(`Depositing USDC token for burn...`);
@@ -146,7 +155,7 @@ declare global {
       tokenSrcInfo.amount,
       params.srcChain,
       params.dstChain,
-      pkp.ethAddress
+      pkp
     );
     signedTx = await createAndSignDepositForBurnTransaction(
       tokenSrcInfo.amount,

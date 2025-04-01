@@ -16,7 +16,7 @@ const estimateDepositForBurnGasLimit = async (
     amount: BigNumber,
     srcChain: number,
     dstChain: number,
-    pkpEthAddress: string
+    pkp: any
 ) => {
     console.log(`Estimating gas limit...`);
 
@@ -26,16 +26,20 @@ const estimateDepositForBurnGasLimit = async (
         provider
     );
 
+    const burnRecipient = `0x${pkp.ethAddress
+        .replace(/^0x/, "")
+        .padStart(64, "0")}`;
+
     try {
         const estimatedGas = await cctpContract.estimateGas.depositForBurn(
             amount,
             DESTINATION_DOMAINS[dstChain],
-            pkpEthAddress,
+            burnRecipient,
             CHAIN_IDS_TO_USDC_ADDRESSES[srcChain],
             "0x0000000000000000000000000000000000000000000000000000000000000000",
             amount.sub(BigNumber.from(1)),
             1000,
-            { from: pkpEthAddress }
+            { from: pkp.ethAddress }
         );
         console.log('Estimated gas limit:', estimatedGas.toString());
         return estimatedGas.mul(120).div(100);
@@ -65,12 +69,16 @@ const createAndSignDepositForBurnTransaction = async (
 ) => {
     console.log(`Creating and signing transaction...`);
 
+    const burnRecipient = `0x${pkp.ethAddress
+        .replace(/^0x/, "")
+        .padStart(64, "0")}`;
+
     const depositForBurnTx = {
         to: CHAIN_IDS_TO_TOKEN_MESSENGER[srcChain],
         data: cctpInterface.encodeFunctionData('depositForBurn', [
             amount,
             DESTINATION_DOMAINS[dstChain],
-            pkp.ethAddress,
+            burnRecipient,
             CHAIN_IDS_TO_USDC_ADDRESSES[srcChain],
             "0x0000000000000000000000000000000000000000000000000000000000000000",
             amount.sub(BigNumber.from(1)),

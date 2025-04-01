@@ -14,7 +14,7 @@ const estimateApproveGasLimit = async (
     tokenIn: string,
     recipientAddress: string,
     amount: any,
-    pkpEthAddress: string
+    pkp: any
 ) => {
     console.log(`Estimating gas limit...`);
 
@@ -28,7 +28,7 @@ const estimateApproveGasLimit = async (
         const estimatedGas = await tokenContract.estimateGas.approve(
             recipientAddress,
             amount,
-            { from: pkpEthAddress }
+            { from: pkp.ethAddress }
         );
         console.log('Estimated gas limit:', estimatedGas.toString());
         return estimatedGas.mul(120).div(100);
