@@ -6,7 +6,7 @@ import {
 } from '@lit-protocol/aw-tool';
 
 import { getTokenInfo } from './utils/get-erc20-info';
-import { CHAIN_IDS_TO_USDC_ADDRESSES } from './utils/constants';
+import { CHAIN_IDS_TO_USDC_ADDRESSES, checkNetwork } from './utils/constants';
 
 import { approveUSDC } from './utils/approve-usdc';
 import { depositForBurn } from './utils/deposit-for-burn';
@@ -48,6 +48,10 @@ declare global {
 
     if (!CHAIN_IDS_TO_USDC_ADDRESSES[params.dstChain]) {
       throw new Error(`USDC address not found for chain ${params.dstChain}`);
+    }
+
+    if(!checkNetwork(params.srcChain, params.dstChain)) {
+      throw new Error(`Mainnet and testnet chains cannot be used in the same transaction`);
     }
 
     const tokenIn = CHAIN_IDS_TO_USDC_ADDRESSES[params.srcChain];
