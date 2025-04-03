@@ -1,5 +1,4 @@
 import { BigNumber } from 'ethers';
-import { getGasData } from './get-gas-data';
 import { broadcastTransaction } from './broadcast-tx';
 import { CHAIN_IDS_TO_TOKEN_MESSENGER, CHAIN_IDS_TO_USDC_ADDRESSES, DESTINATION_DOMAINS } from './constants';
 
@@ -58,12 +57,12 @@ export const depositForBurn = async (
     amount: BigNumber,
     srcChain: number,
     dstChain: number,
-    pkp: any
+    pkp: any,
+    gasData: any,
 ) => {
     console.log(`Creating and signing burn transaction...`);
     const burnRecipient = `0x${pkp.ethAddress.replace(/^0x/, "").padStart(64, "0")}`;
     const gasLimit = await estimateDepositForBurnGasLimit(provider, amount, srcChain, dstChain, pkp);
-    const gasData = await getGasData(provider, pkp.ethAddress);
 
     const depositForBurnTx = {
         to: CHAIN_IDS_TO_TOKEN_MESSENGER[srcChain],
@@ -80,7 +79,7 @@ export const depositForBurn = async (
         gasLimit: gasLimit.toHexString(),
         maxFeePerGas: gasData.maxFeePerGas,
         maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
-        nonce: gasData.nonce,
+        nonce: gasData.nonce + 1,
         chainId: srcChain,
         type: 2,
     };

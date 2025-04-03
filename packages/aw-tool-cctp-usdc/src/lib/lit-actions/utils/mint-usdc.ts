@@ -1,4 +1,4 @@
-import { getGasData } from './get-gas-data';
+import { getGasDataMint } from './get-gas-data-mint';
 import { broadcastTransaction } from './broadcast-tx';
 import { CHAIN_IDS_TO_MESSAGE_TRANSMITTER } from './constants';
 
@@ -51,7 +51,7 @@ export const mintUSDC = async (
     // dstProvider, params.dstChain, attestation, pkp
     console.log(`Creating and signing mint transaction...`);
     const gasLimit = await estimateMintUSDCGasLimit(provider, pkp.ethAddress, dstChain, attestation);
-    const gasData = await getGasData(provider, pkp.ethAddress);
+    const gasData = await getGasDataMint(provider, pkp.ethAddress);
 
     const mintTx = {
         to: CHAIN_IDS_TO_MESSAGE_TRANSMITTER[dstChain],

@@ -1,44 +1,27 @@
 /**
- * Broadcasts the signed transaction to the network.
+ * Broadcasts a signed transaction to the network.
  * @param {string} signedTx - The signed transaction.
  * @returns {Promise<string>} The transaction hash.
  */
 export const broadcastTransaction = async (provider: any, signedTx: string) => {
-    console.log('Broadcasting tx...');
-    return await Lit.Actions.runOnce(
+    console.log('Broadcasting transaction...');
+    const txHash = await Lit.Actions.runOnce(
         { waitForResponse: true, name: 'txnSender' },
         async () => {
             try {
-                const tx = await provider.sendTransaction(signedTx);
-                console.log('Transaction sent:', tx.hash);
-
-                const receipt = await tx.wait(1);
-                console.log('Transaction mined:', receipt.transactionHash);
-
-                return receipt.transactionHash;
-            } catch (err: any) {
-                // Log the full error object for debugging
-                console.error('Full error object:', JSON.stringify(err, null, 2));
-
-                // Extract detailed error information
-                const errorDetails = {
-                    message: err.message,
-                    code: err.code,
-                    reason: err.reason,
-                    error: err.error,
-                    ...(err.transaction && { transaction: err.transaction }),
-                    ...(err.receipt && { receipt: err.receipt }),
-                };
-
-                console.error('Error details:', JSON.stringify(errorDetails, null, 2));
-
-                // Return stringified error response
-                return JSON.stringify({
-                    error: true,
-                    message: err.reason || err.message || 'Transaction failed',
-                    details: errorDetails,
-                });
+                const receipt = await provider.sendTransaction(signedTx);
+                console.log('Transaction sent:', receipt.hash);
+                return receipt.hash;
+            } catch (error) {
+                console.error('Error broadcasting transaction:', error);
+                throw error;
             }
         }
     );
+
+    if (!ethers.utils.isHexString(txHash)) {
+        throw new Error(`Invalid transaction hash: ${txHash}`);
+    }
+
+    return txHash;
 };

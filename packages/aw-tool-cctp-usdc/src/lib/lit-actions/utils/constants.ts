@@ -73,7 +73,7 @@ export const DESTINATION_DOMAINS: Record<number, number> = {
   [SupportedChainId.LINEA_SEPOLIA]: 11,
   // ---------------------
   [SupportedChainId.ETH]: 0,
-  [SupportedChainId.AVAX]: 6,
+  [SupportedChainId.AVAX]: 1,
   [SupportedChainId.BASE]: 6,
   [SupportedChainId.LINEA]: 11,
 };

@@ -1,4 +1,3 @@
-import { getGasData } from './get-gas-data';
 import { broadcastTransaction } from './broadcast-tx';
 import { CHAIN_IDS_TO_TOKEN_MESSENGER } from './constants';
 
@@ -48,7 +47,8 @@ export const approveUSDC = async (
     tokenIn: string,
     amount: any,
     srcChain: number,
-    pkp: any
+    pkp: any,
+    gasData: any,
 ) => {
     const tokenContract = new ethers.Contract(tokenIn, TOKEN_INTERFACE, provider);
     const currentAllowance = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[params.srcChain])
@@ -60,7 +60,6 @@ export const approveUSDC = async (
     if (approvalRequired) {
         console.log(`Creating and signing approval transaction...`);
         const gasLimit = await estimateApproveGasLimit(provider, tokenIn, pkp.ethAddress, amount, pkp);
-        const gasData = await getGasData(provider, pkp.ethAddress);
 
         const approveTx = {
             to: tokenIn,
@@ -105,4 +104,6 @@ export const approveUSDC = async (
     }
 
     console.log(`Approval transaction hash: ${txHash}`);
+
+    return { gasData };
 };
