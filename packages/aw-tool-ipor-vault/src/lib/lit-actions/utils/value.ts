@@ -1,7 +1,6 @@
 const VAULT_INTERFACE = new ethers.utils.Interface([
     'function decimals() view returns (uint8)',
     'function asset() view returns (address)',
-    'function totalAssets() view returns (uint256)',
     'function balanceOf(address account) view returns (uint256)',
     'function convertToAssets(uint256 shares) view returns (uint256)',
 ]);
@@ -21,8 +20,7 @@ export const values = async (
     vault: string,
     pkp: any
 ) => {
-    let totalAssets;
-    let deposited;
+    let assets;
     let shares;
 
     console.log(`Getting values for vault ${vault}...`);
@@ -33,17 +31,14 @@ export const values = async (
     const shareDecimals = await vaultContract.decimals();
     const assetDecimals = await assetContract.decimals();
 
-    totalAssets = await vaultContract.totalAssets();
     shares = await vaultContract.balanceOf(pkp.ethAddress);
-    deposited = await vaultContract.convertToAssets(shares);
+    assets = await vaultContract.convertToAssets(shares);
 
-    console.log('Total assets:', totalAssets.toString());
-    console.log('Deposited:', deposited.toString());
+    console.log('Assets:', assets.toString());
     console.log('Shares:', shares.toString());
 
     return {
-        totalAssets: ethers.utils.formatUnits(totalAssets, assetDecimals),
-        deposited: ethers.utils.formatUnits(deposited, assetDecimals),
+        assets: ethers.utils.formatUnits(assets, assetDecimals),
         shares: ethers.utils.formatUnits(shares, shareDecimals),
     };
 }

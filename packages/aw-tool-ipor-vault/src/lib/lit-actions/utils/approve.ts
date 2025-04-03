@@ -74,10 +74,11 @@ export const approveVault = async (
     const approvalRequired = currentAllowance.lt(parsedAmount);
     let txHash = 'No approval required';
 
+    const gasData = await getGasData(provider, pkp.ethAddress);
+
     if (approvalRequired) {
         console.log(`Creating and signing approval transaction...`);
         const gasLimit = await estimateApproveGasLimit(provider, token, vault, parsedAmount, pkp);
-        const gasData = await getGasData(provider, pkp.ethAddress);
 
         const approveTx = {
             to: token,
@@ -119,5 +120,5 @@ export const approveVault = async (
     }
 
     console.log(`Approval transaction hash: ${txHash}`);
-    return parsedAmount;
+    return { parsedAmount, gasData };
 };

@@ -1,4 +1,3 @@
-import { getGasData } from './get-gas-data';
 import { broadcastTransaction } from './broadcast-tx';
 import { approveVault } from './approve';
 
@@ -48,15 +47,14 @@ export const deposit = async (
     chainId: number,
     vault: string,
     amount: any,
-    pkp: any
+    pkp: any,
 ) => {
     const vaultContract = new ethers.Contract(vault, VAULT_INTERFACE, provider);
     const asset = await vaultContract.asset();
-    const parsedAmount = await approveVault(provider, asset, vault, amount, chainId, pkp);
+    let { parsedAmount, gasData } = await approveVault(provider, asset, vault, amount, chainId, pkp);
 
     console.log(`Creating and signing deposit transaction...`);
     const gasLimit = await estimateDepositGasLimit(provider, vault, parsedAmount, pkp);
-    const gasData = await getGasData(provider, pkp.ethAddress);
 
     const depositTx = {
         to: vault,
@@ -65,7 +63,7 @@ export const deposit = async (
         gasLimit: gasLimit.toHexString(),
         maxFeePerGas: gasData.maxFeePerGas,
         maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
-        nonce: gasData.nonce,
+        nonce: gasData.nonce + 1,
         chainId: chainId,
         type: 2,
     };
