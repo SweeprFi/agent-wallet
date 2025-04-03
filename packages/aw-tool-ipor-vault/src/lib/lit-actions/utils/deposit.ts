@@ -88,12 +88,6 @@ export const deposit = async (
 
     console.log("signed deposit tx:", signedTx);
     const txHash = await broadcastTransaction(provider, signedTx);
-    console.log('Waiting for deposit confirmation...');
-    const despoitConfirmation = await provider.waitForTransaction(txHash, 1);
 
-    if (despoitConfirmation.status === 0) {
-        throw new Error('Deposit transaction failed');
-    }
-
-    console.log(`Deposit transaction hash: ${txHash}`);
+    return `Deposit transaction hash: ${txHash}`;
 };

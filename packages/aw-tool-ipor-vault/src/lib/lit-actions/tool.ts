@@ -7,6 +7,7 @@ import {
 
 import { deposit } from './utils/deposit';
 import { redeem } from './utils/redeem';
+import { values } from './utils/value';
 
 declare global {
   // Required Inputs
@@ -62,21 +63,28 @@ declare global {
       console.log(`No policy found for tool ${toolIpfsCid} on PKP ${pkp.tokenId} for delegatee ${delegateeAddress}`);
     }
 
+    let response;
+
     switch (params.action) {
       case 'deposit':
-        await deposit(provider, chainId, params.vault, params.amount, pkp);
+        response = await deposit(provider, chainId, params.vault, params.amount, pkp);
         break;
       case 'redeem':
-        await redeem(provider, chainId, params.vault, params.amount, pkp);
+        response = await redeem(provider, chainId, params.vault, params.amount, pkp);
         break;
       default:
-        console.log(`Unknown action: ${params.action}`);
+        response = await values(provider, params.vault, pkp);
+        break;
     }
 
     Lit.Actions.setResponse({
       response: JSON.stringify({
         response: 'Success!',
         status: 'success',
+        action: params.action,
+        vault: params.vault,
+        amount: params.amount,
+        data: response,
       }),
     });
   } catch (err: any) {

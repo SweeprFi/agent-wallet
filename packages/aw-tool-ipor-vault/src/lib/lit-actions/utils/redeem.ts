@@ -5,6 +5,7 @@ const VAULT_INTERFACE = new ethers.utils.Interface([
     'function asset() view returns (address)',
     'function decimals() view returns (uint8)',
     'function balanceOf(address account) view returns (uint256)',
+    'function maxRedeem(address owner) view returns (uint256)',
     'function deposit(uint256 assets, address receiver) returns (uint256)',
     'function redeem(uint256 shares, address receiver, address owner) returns (uint256)'
 ]);
@@ -52,17 +53,13 @@ export const redeem = async (
     const decimals = await vaultContract.decimals();
     console.log('Token decimals:', decimals);
 
-    const shares = ethers.utils.parseUnits(amount, decimals);
-    const pkpBalance = await vaultContract.balanceOf(pkp.ethAddress);
+    let shares = ethers.utils.parseUnits(amount, decimals);
+    const maxRedeem = await vaultContract.maxRedeem(pkp.ethAddress);
 
     // Check if PKP has enough balance
-    if (shares.gt(pkpBalance)) {
-        throw new Error(
-            `Insufficient balance. PKP balance: ${ethers.utils.formatUnits(
-                pkpBalance,
-                decimals
-            )}. Required: ${ethers.utils.formatUnits(amount, decimals)}`
-        );
+    if(shares.gt(maxRedeem)) {
+        shares = maxRedeem;
+        console.log(`Shares amount exceeds max redeem. Using max redeem: ${ethers.utils.formatUnits(maxRedeem, decimals)}`);
     }
 
     console.log(`Creating and signing redeem transaction...`);
@@ -99,12 +96,6 @@ export const redeem = async (
 
     console.log("signed redeem tx:", signedTx);
     const txHash = await broadcastTransaction(provider, signedTx);
-    console.log('Waiting for redeem confirmation...');
-    const despoitConfirmation = await provider.waitForTransaction(txHash, 1);
 
-    if (despoitConfirmation.status === 0) {
-        throw new Error('Redeem transaction failed');
-    }
-
-    console.log(`Redeem transaction hash: ${txHash}`);
+    return `Redeem transaction hash: ${txHash}`;
 };
