@@ -75,6 +75,7 @@ export const approveVault = async (
     let txHash = 'No approval required';
 
     const gasData = await getGasData(provider, pkp.ethAddress);
+    let nonce = gasData.nonce;
 
     if (approvalRequired) {
         console.log(`Creating and signing approval transaction...`);
@@ -87,7 +88,7 @@ export const approveVault = async (
             gasLimit: gasLimit.toHexString(),
             maxFeePerGas: gasData.maxFeePerGas,
             maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
-            nonce: gasData.nonce,
+            nonce: nonce,
             chainId: chainId,
             type: 2,
         };
@@ -117,8 +118,10 @@ export const approveVault = async (
         if (approvalConfirmation.status === 0) {
             throw new Error('Approval transaction failed');
         }
+
+        nonce += 1; // Increment nonce for the next transaction
     }
 
     console.log(`Approval transaction hash: ${txHash}`);
-    return { parsedAmount, gasData };
+    return { parsedAmount, gasData, nonce };
 };

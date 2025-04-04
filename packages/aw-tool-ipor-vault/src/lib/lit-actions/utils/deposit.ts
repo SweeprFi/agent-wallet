@@ -51,7 +51,7 @@ export const deposit = async (
 ) => {
     const vaultContract = new ethers.Contract(vault, VAULT_INTERFACE, provider);
     const asset = await vaultContract.asset();
-    let { parsedAmount, gasData } = await approveVault(provider, asset, vault, amount, chainId, pkp);
+    let { parsedAmount, gasData, nonce } = await approveVault(provider, asset, vault, amount, chainId, pkp);
 
     console.log(`Creating and signing deposit transaction...`);
     const gasLimit = await estimateDepositGasLimit(provider, vault, parsedAmount, pkp);
@@ -63,7 +63,7 @@ export const deposit = async (
         gasLimit: gasLimit.toHexString(),
         maxFeePerGas: gasData.maxFeePerGas,
         maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
-        nonce: gasData.nonce + 1,
+        nonce: nonce,
         chainId: chainId,
         type: 2,
     };
