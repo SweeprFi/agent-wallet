@@ -1,5 +1,5 @@
-import { getGasDataMint } from './get-gas-data-mint';
 import { broadcastTransaction } from './broadcast-tx';
+import { retrieveAttestation } from './retrieve-attestation';
 import { CHAIN_IDS_TO_MESSAGE_TRANSMITTER } from './constants';
 
 const CCPT_INTERFACE = new ethers.utils.Interface([
@@ -37,31 +37,44 @@ const estimateMintUSDCGasLimit = async (
 
 /**
  * Creates and signs the transaction.
- * @param {any} gasLimit - The gas limit for the transaction.
- * @param {any} amount - The amount to transfer.
+ * @param {any} provider - The Ethereum provider.
+ * @param {string} burnTx - The burn transaction hash.
+ * @param {number} srcChainId - The source chain ID.
+ * @param {number} dstChainId - The destination chain ID.
+ * @param {any} pkp - The PKP object.
  * @param {any} gasData - Gas data (maxFeePerGas, maxPriorityFeePerGas, nonce).
  * @returns {Promise<string>} The signed transaction.
  */
 export const mintUSDC = async (    
     provider: any,
-    dstChain: number,
-    attestation: any,
-    pkp: any
+    burnTx: string,
+    srcChainId: number,
+    dstChainId: number,
+    pkp: any,
+    gasData: any
 ) => {
-    // dstProvider, params.dstChain, attestation, pkp
+    // Retrieve attestation ------------------------------------------------------
+    const attestation = await retrieveAttestation(burnTx, srcChainId);
+    console.log(`Attestation: ${JSON.stringify(attestation)}`);
+
+    const balanceDst = await provider.getBalance(pkp.ethAddress);
+    const minBalance = ethers.utils.parseUnits("0.01"); // 0.01 native token
+    if (balanceDst < minBalance) {
+      throw new Error("Insufficient native token for gas fees");
+    }
+
     console.log(`Creating and signing mint transaction...`);
-    const gasLimit = await estimateMintUSDCGasLimit(provider, pkp.ethAddress, dstChain, attestation);
-    const gasData = await getGasDataMint(provider, pkp.ethAddress);
+    const gasLimit = await estimateMintUSDCGasLimit(provider, pkp.ethAddress, dstChainId, attestation);
 
     const mintTx = {
-        to: CHAIN_IDS_TO_MESSAGE_TRANSMITTER[dstChain],
+        to: CHAIN_IDS_TO_MESSAGE_TRANSMITTER[dstChainId],
         data: CCPT_INTERFACE.encodeFunctionData('receiveMessage', [attestation.message, attestation.attestation]),
         value: '0x0',
         gasLimit: gasLimit.toHexString(),
         maxFeePerGas: gasData.maxFeePerGas,
         maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
         nonce: gasData.nonce,
-        chainId: dstChain,
+        chainId: dstChainId,
         type: 2,
     };
 
@@ -84,4 +97,14 @@ export const mintUSDC = async (
     console.log("signed mint tx:", signedTx);
     const txHash = await broadcastTransaction(provider, signedTx);
     console.log(`Mint transaction hash: ${txHash}`);
+
+    // Wait for approval confirmation
+    console.log('Waiting for mint confirmation...');
+    const mintConfirmation = await provider.waitForTransaction(txHash, 1);
+
+    if (mintConfirmation.status === 0) {
+        throw new Error('Burn transaction failed');
+    }
+
+    return txHash;
 };

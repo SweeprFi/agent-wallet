@@ -1,4 +1,5 @@
 import { BigNumber } from 'ethers';
+import { approveUSDC } from './approve-usdc';
 import { broadcastTransaction } from './broadcast-tx';
 import { CHAIN_IDS_TO_TOKEN_MESSENGER, CHAIN_IDS_TO_USDC_ADDRESSES, DESTINATION_DOMAINS } from './constants';
 
@@ -47,40 +48,43 @@ const estimateDepositForBurnGasLimit = async (
 /**
  * Creates and signs the transaction.
  * @param {any} provider - The Ethereum provider.
- * @param {BigNumber} amount - The amount to transfer.
- * @param {number} srcChain - The source chain ID.
- * @param {number} dstChain - The destination chain ID.
+ * @param {any} tokenInfo - The token information.
+ * @param {number} srcChainId - The source chain ID.
+ * @param {number} dstChainId - The destination chain ID.
  * @param {any} pkp - The PKP object.
  */
 export const depositForBurn = async (
     provider: any,
-    amount: BigNumber,
-    srcChain: number,
-    dstChain: number,
+    tokenInfo: any,
+    srcChainId: number,
+    dstChainId: number,
     pkp: any,
-    gasData: any,
+    gasData: any
 ) => {
+    // Approve USDC token ------------------------------------------------------
+    const nonce = await approveUSDC(provider, tokenInfo.token, tokenInfo.amount, srcChainId, pkp, gasData);
+    // Deposit for Burn USDC token ---------------------------------------------
     console.log(`Creating and signing burn transaction...`);
     const burnRecipient = `0x${pkp.ethAddress.replace(/^0x/, "").padStart(64, "0")}`;
-    const gasLimit = await estimateDepositForBurnGasLimit(provider, amount, srcChain, dstChain, pkp);
+    const gasLimit = await estimateDepositForBurnGasLimit(provider, tokenInfo.amount, srcChainId, dstChainId, pkp);
 
     const depositForBurnTx = {
-        to: CHAIN_IDS_TO_TOKEN_MESSENGER[srcChain],
+        to: CHAIN_IDS_TO_TOKEN_MESSENGER[srcChainId],
         data: CCPT_INTERFACE.encodeFunctionData('depositForBurn', [
-            amount,
-            DESTINATION_DOMAINS[dstChain],
+            tokenInfo.amount,
+            DESTINATION_DOMAINS[dstChainId],
             burnRecipient,
-            CHAIN_IDS_TO_USDC_ADDRESSES[srcChain],
+            CHAIN_IDS_TO_USDC_ADDRESSES[srcChainId],
             "0x0000000000000000000000000000000000000000000000000000000000000000",
-            amount.sub(BigNumber.from(1)),
+            (tokenInfo.amount).sub(BigNumber.from(1)),
             1000,
         ]),
         value: '0x0',
         gasLimit: gasLimit.toHexString(),
         maxFeePerGas: gasData.maxFeePerGas,
         maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
-        nonce: gasData.nonce + 1,
-        chainId: srcChain,
+        nonce: nonce,
+        chainId: srcChainId,
         type: 2,
     };
 

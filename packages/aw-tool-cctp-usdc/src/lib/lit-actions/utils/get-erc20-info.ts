@@ -58,7 +58,7 @@ export async function getTokenInfo(
             );
         }
 
-        return { decimals, pkpBalance, amount };
+        return { decimals, pkpBalance, amount, token };
     } catch (error) {
         console.error('Error getting token info:', error);
         throw new Error(

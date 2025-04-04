@@ -6,54 +6,53 @@ import {
 } from '@lit-protocol/aw-tool';
 
 import { getGasData } from './utils/get-gas-data';
-
 import { getTokenInfo } from './utils/get-erc20-info';
 import { CHAIN_IDS_TO_USDC_ADDRESSES, checkNetwork } from './utils/constants';
 
-import { approveUSDC } from './utils/approve-usdc';
 import { depositForBurn } from './utils/deposit-for-burn';
-import { retrieveAttestation } from './utils/retrieve-attestation';
 import { mintUSDC } from './utils/mint-usdc';
 
 declare global {
   // Required Inputs
   const params: {
     pkpEthAddress: string;
-    rpcSrcUrl: string;
-    rpcDstUrl: string;
-    srcChain: keyof typeof CHAIN_IDS_TO_USDC_ADDRESSES;
-    dstChain: keyof typeof CHAIN_IDS_TO_USDC_ADDRESSES;
+    action: string;
+    opChainId: keyof typeof CHAIN_IDS_TO_USDC_ADDRESSES;
     amount: string;
     burnTx: string;
+    rpcUrl: string;
   };
 }
 
 (async () => {
   try {
     console.log(`Using Lit Network: ${LIT_NETWORK}`);
-    console.log(
-      `Using PKP Tool Registry Address: ${PKP_TOOL_REGISTRY_ADDRESS}`
-    );
+    console.log(`Using PKP Tool Registry Address: ${PKP_TOOL_REGISTRY_ADDRESS}`);
     console.log(
       `Using Pubkey Router Address: ${NETWORK_CONFIG[LIT_NETWORK as keyof typeof NETWORK_CONFIG]
         .pubkeyRouterAddress
       }`
     );
 
+    const provider = new ethers.providers.JsonRpcProvider(params.rpcUrl);
+    const { chainId } = await provider.getNetwork();
+    const srcChainId = chainId;
+    const dstChainId = params.opChainId;
+    const tokenIn = CHAIN_IDS_TO_USDC_ADDRESSES[srcChainId];
+
     // Validate chain ids
-    if (!CHAIN_IDS_TO_USDC_ADDRESSES[params.srcChain]) {
-      throw new Error(`USDC address not found for chain ${params.srcChain}`);
+    if (!CHAIN_IDS_TO_USDC_ADDRESSES[srcChainId]) {
+      throw new Error(`USDC address not found for chain ${srcChainId}`);
     }
 
-    if (!CHAIN_IDS_TO_USDC_ADDRESSES[params.dstChain]) {
-      throw new Error(`USDC address not found for chain ${params.dstChain}`);
+    if (!CHAIN_IDS_TO_USDC_ADDRESSES[dstChainId]) {
+      throw new Error(`USDC address not found for chain ${dstChainId}`);
     }
 
-    if(!checkNetwork(params.srcChain, params.dstChain)) {
+    if (!checkNetwork(Number(srcChainId), Number(dstChainId))) {
       throw new Error(`Mainnet and testnet chains cannot be used in the same transaction`);
     }
 
-    const tokenIn = CHAIN_IDS_TO_USDC_ADDRESSES[params.srcChain];
     const delegateeAddress = ethers.utils.getAddress(LitAuth.authSigAddress);
     const toolIpfsCid = LitAuth.actionIpfsIds[0];
 
@@ -67,10 +66,7 @@ declare global {
       toolIpfsCid
     );
 
-    const srcProvider = new ethers.providers.JsonRpcProvider(params.rpcSrcUrl);
-    const dstProvider = new ethers.providers.JsonRpcProvider(params.rpcDstUrl);
-    const balanceDst = await dstProvider.getBalance(pkp.ethAddress);
-    const tokenSrcInfo = await getTokenInfo(srcProvider, tokenIn, params.amount, pkp.ethAddress);
+    const tokenInfo = await getTokenInfo(provider, tokenIn, params.amount, pkp.ethAddress);
 
     if (
       toolPolicy.enabled &&
@@ -87,37 +83,31 @@ declare global {
           pkpTokenId: pkp.tokenId,
           delegateeAddress,
           toolParameters: params,
-          tokenInfo: tokenSrcInfo
+          tokenInfo: tokenInfo
         },
       });
     } else {
       console.log(`No policy found for tool ${toolIpfsCid} on PKP ${pkp.tokenId} for delegatee ${delegateeAddress}`);
     }
 
-    let gasData = await getGasData(srcProvider, pkp.ethAddress);
+    let txHash;
+    const gasData = await getGasData(provider, pkp.ethAddress);
 
-    let burnTxHash = params.burnTx;
-    if (!burnTxHash) {
-      // Approve USDC token ------------------------------------------------------
-      await approveUSDC(srcProvider, tokenIn, tokenSrcInfo.amount, params.srcChain, pkp, gasData);      
-      // Deposit for Burn USDC token ---------------------------------------------
-      burnTxHash = await depositForBurn(srcProvider, tokenSrcInfo.amount, params.srcChain, params.dstChain, pkp, gasData);
+    switch (params.action) {
+      case 'send':
+        txHash = await depositForBurn(provider, tokenInfo, srcChainId, dstChainId, pkp, gasData);
+        break;
+      default:
+        txHash = await mintUSDC(provider, params.burnTx, dstChainId, srcChainId, pkp, gasData);
+        break;
     }
-
-    // Retrieve attestation ------------------------------------------------------
-    const attestation = await retrieveAttestation(burnTxHash, params.srcChain); // TODO: Add attestation to Lit.Actions.setResponse
-    console.log(`Attestation: ${JSON.stringify(attestation)}`);
-        
-    const minBalance = ethers.utils.parseUnits("0.01"); // 0.01 native token
-    if (balanceDst < minBalance) {
-      throw new Error("Insufficient native token for gas fees");
-    }
-
-    // Mint USDC token on destination chain
-    await mintUSDC(dstProvider, params.dstChain, attestation, pkp);
 
     Lit.Actions.setResponse({
-      response: JSON.stringify({ response: 'Success!', status: 'success', }),
+      response: JSON.stringify({
+        response: 'Success!',
+        status: 'success',
+        data: txHash
+      }),
     });
   } catch (err: any) {
     console.error('Error:', err);

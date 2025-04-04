@@ -9,20 +9,20 @@ const TOKEN_INTERFACE = new ethers.utils.Interface([
 /**
  * Estimates the gas limit for the transaction.
  * @param {any} provider - The Ethereum provider.
- * @param {string} tokenIn - The token address.
+ * @param {string} token - The token address.
  * @param {string} recipientAddress - The recipient address.
  * @param {any} amount - The amount to transfer.
  * @param {any} pkp - The PKP object.
  */
 const estimateApproveGasLimit = async (
     provider: any,
-    tokenIn: string,
+    token: string,
     recipientAddress: string,
     amount: any,
     pkp: any
 ) => {
     console.log(`Estimating gas limit...`);
-    const tokenContract = new ethers.Contract(tokenIn, TOKEN_INTERFACE, provider);
+    const tokenContract = new ethers.Contract(token, TOKEN_INTERFACE, provider);
 
     try {
         const estimatedGas = await tokenContract.estimateGas.approve(recipientAddress, amount, { from: pkp.ethAddress });
@@ -37,39 +37,38 @@ const estimateApproveGasLimit = async (
 /**
  * Creates and signs the transaction.
  * @param {any} provider - The Ethereum provider.
- * @param {string} tokenIn - The token address.
+ * @param {string} token - The token address.
  * @param {any} amount - The amount to transfer.
  * @param {number} srcChain - The source chain ID.
  * @param {any} pkp - The PKP object.
  */
 export const approveUSDC = async (
     provider: any,
-    tokenIn: string,
+    token: string,
     amount: any,
-    srcChain: number,
+    srcChainId: number,
     pkp: any,
     gasData: any,
 ) => {
-    const tokenContract = new ethers.Contract(tokenIn, TOKEN_INTERFACE, provider);
-    const currentAllowance = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[params.srcChain])
-    console.log("Amount parameter:", amount.toString());
-    console.log("Approved amount:", currentAllowance.toString());
+    const tokenContract = new ethers.Contract(token, TOKEN_INTERFACE, provider);
+    const currentAllowance = await tokenContract.allowance(pkp.ethAddress, CHAIN_IDS_TO_TOKEN_MESSENGER[srcChainId]);
     const approvalRequired = currentAllowance.lt(amount);
     let txHash = 'No approval required';
+    let nonce = gasData.nonce;
 
     if (approvalRequired) {
         console.log(`Creating and signing approval transaction...`);
-        const gasLimit = await estimateApproveGasLimit(provider, tokenIn, pkp.ethAddress, amount, pkp);
+        const gasLimit = await estimateApproveGasLimit(provider, token, pkp.ethAddress, amount, pkp);
 
         const approveTx = {
-            to: tokenIn,
-            data: TOKEN_INTERFACE.encodeFunctionData('approve', [CHAIN_IDS_TO_TOKEN_MESSENGER[srcChain], amount]),
+            to: token,
+            data: TOKEN_INTERFACE.encodeFunctionData('approve', [CHAIN_IDS_TO_TOKEN_MESSENGER[srcChainId], amount]),
             value: '0x0',
             gasLimit: gasLimit.toHexString(),
             maxFeePerGas: gasData.maxFeePerGas,
             maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
-            nonce: gasData.nonce,
-            chainId: srcChain,
+            nonce: nonce,
+            chainId: srcChainId,
             type: 2,
         };
 
@@ -93,17 +92,16 @@ export const approveUSDC = async (
 
          // Wait for approval confirmation
         console.log('Waiting for approval confirmation...');
-        const approvalConfirmation = await provider.waitForTransaction(
-            txHash,
-            1
-        );
+        const approvalConfirmation = await provider.waitForTransaction(txHash, 1);
 
         if (approvalConfirmation.status === 0) {
             throw new Error('Approval transaction failed');
         }
+
+        nonce += 1;
     }
 
     console.log(`Approval transaction hash: ${txHash}`);
 
-    return { gasData };
+    return nonce;
 };
