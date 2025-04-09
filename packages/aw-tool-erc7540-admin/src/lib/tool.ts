@@ -49,7 +49,7 @@ const Erc7540AdminLitActionSchema = z.object({
   action: z
     .string()
     .regex(
-      /^(fulfillDeposit|fulfillRedeem|takeAssets|returnAssets|updateInvested)$/,
+      /^(fulfillDeposit|fulfillRedeem|takeAssets|returnAssets|updateInvested|getValues)$/,
       'Must be one of the following values: fulfillDeposit, fulfillRedeem, takeAssets, returnAssets, updateInvested'
     ),
   vault: z
@@ -76,7 +76,7 @@ const Erc7540AdminLitActionParameterDescriptions = {
     'The Ethereum address of the PKP that will be used to perform the action.',
   controller: 'A user wallet of the system',
   amount: 'Amount of assets or shares to be processed',
-  action: 'The action to perform',
+  action: 'The action to perform: fulfillDeposit | fulfillRedeem | takeAssets | returnAssets | updateInvested | getValues',
   vault: 'The vault address',
   rpcUrl: 'The RPC URL for the blockchain network',
 } as const;

@@ -2,7 +2,8 @@ import { broadcastTransaction } from './broadcast-tx';
 
 const VAULT_INTERFACE = new ethers.utils.Interface([
     'function fulfillRedeem(address controller, uint256 amount) returns (bool)',
-    'function asset() view returns (address)'
+    'function asset() view returns (address)',
+    'function decimals() view returns (uint8)'
 ]);
 
 /**

@@ -41,22 +41,12 @@ export async function getTokenInfo(
     console.log('Fetching token decimals and balance...');
     try {
         const decimals = await tokenContract.decimals();
-        console.log('Token decimals:', decimals);
-
         const amount = ethers.utils.parseUnits(amountIn, decimals);
-        console.log('Amount to send:', amount.toString());
-
         const pkpBalance = await tokenContract.balanceOf(pkpEthAddress);
-        console.log('PKP balance:', pkpBalance.toString());
 
-        if (amount.gt(pkpBalance)) {
-            throw new Error(
-                `Insufficient balance. PKP balance: ${ethers.utils.formatUnits(
-                    pkpBalance,
-                    decimals
-                )}. Required: ${ethers.utils.formatUnits(amount, decimals)}`
-            );
-        }
+        console.log('Token decimals:', decimals);
+        console.log('Amount to send:', amount.toString());
+        console.log('PKP balance:', pkpBalance.toString());
 
         return { decimals, pkpBalance, amount, token };
     } catch (error) {

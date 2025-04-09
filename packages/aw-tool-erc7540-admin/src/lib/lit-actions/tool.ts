@@ -94,7 +94,7 @@ declare global {
       case 'returnAssets':
         response = await returnAssets(provider, chainId, params.vault, params.amount, pkp, gasData);
         break;
-      case 'updateInvestedTotal':
+      case 'updateInvested':
         response = await updateInvestedTotal(provider, chainId, params.vault, params.amount, pkp, gasData);
         break;
       default:
