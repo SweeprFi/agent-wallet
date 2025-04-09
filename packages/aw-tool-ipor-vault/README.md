@@ -1,6 +1,6 @@
 # AW-Tool IporVault Documentation
 
-The `aw-tool-ipor-vault` package provides functionality for performing ECDSA signing operations using Lit Protocol's PKPs (Programmable Key Pairs). This tool enables secure signing of arbitrary messages or transactions while enforcing policy-based controls.
+The `aw-tool-ipor-vault` package provides functionality for interacting with IPOR Vaults using the ERC4626 standard. This tool enables secure depositing and withdrawing of assets while enforcing policy-based controls.
 
 ---
 
@@ -17,39 +17,43 @@ Handles IPFS CIDs for different environments (development, testing, production).
 ---
 
 ### 2. **`lit-action.ts`**
-Contains the main logic for executing a Lit Action to perform ECDSA signing operations.
+Contains the main logic for executing IPOR Vault operations.
 
 #### Key Features:
 - **PKP Info Retrieval**: Fetches PKP details (token ID, Ethereum address, public key) from the PubkeyRouter contract
 - **Delegatee Validation**: Verifies that the session signer is a valid delegatee for the PKP
-- **Policy Enforcement**: Validates message prefixes against the allowed prefixes in the policy
-- **Message Signing**: Signs messages using the PKP's public key via Lit Actions
+- **Policy Enforcement**: Validates vault addresses and amounts against the policy
+- **Vault Operations**: Handles deposits and withdrawals through ERC4626 standard
 - **Error Handling**: Comprehensive error handling and response formatting
 
 ---
 
 ### 3. **`policy.ts`**
-Defines and validates the ECDSA signing policy schema using Zod.
+Defines and validates the IPOR Vault policy schema using Zod.
 
 #### Key Features:
 - **Policy Schema**: Validates policy fields:
-  - `type`: Must be 'SignEcdsa'
+  - `type`: Must be 'IporVault'
   - `version`: Policy version string
-  - `allowedPrefixes`: Array of allowed message prefixes
+  - `allowedVaults`: Array of allowed vault addresses
+  - `maxAmount`: Maximum amount allowed for operations
 - **Encoding/Decoding**: Converts policies to and from ABI-encoded strings using ethers
 - **Type Safety**: Uses Zod for schema validation and TypeScript type inference
 
 ---
 
 ### 4. **`tool.ts`**
-Configures the ECDSA signing tool for different Lit networks.
+Configures the IPOR Vault tool for different Lit networks.
 
 #### Key Features:
 - **Parameter Schema**: Validates required parameters:
   - `pkpEthAddress`: The Ethereum address of the PKP
-  - `message`: The message to be signed
+  - `action`: The operation to perform ('deposit', 'redeem', or 'value')
+  - `amount`: The amount to deposit or redeem
+  - `vault`: The IPOR vault address
+  - `rpcUrl`: The RPC URL for the blockchain network
 - **Network Configuration**: Creates network-specific tools for each supported Lit network
 - **Tool Definition**: Implements the `AwTool` interface with:
   - Name and description
   - Parameter validation and descriptions
-  - Policy integration with `SignEcdsaPolicy`
+  - Policy integration with `IporVaultPolicy`
