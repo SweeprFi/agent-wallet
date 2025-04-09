@@ -38,10 +38,10 @@ function encodePolicy(policy: Erc7540AdminPolicyType): string {
  * @throws If the encoded policy is invalid or does not conform to the schema.
  */
 function decodePolicy(encodedPolicy: string): Erc7540AdminPolicyType {
-  const decoded = ethers.utils.defaultAbiCoder.decode(
-    ['tuple()'],
-    encodedPolicy
-  )[0];
+  // const decoded = ethers.utils.defaultAbiCoder.decode(
+  //   ['tuple()'],
+  //   encodedPolicy
+  // )[0];
 
   const policy: Erc7540AdminPolicyType = {
     type: 'Erc7540Admin',

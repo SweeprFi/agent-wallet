@@ -49,8 +49,7 @@ export const fulfillDeposit = async (
     controller: string,
     amount: any,
     pkp: any,
-    gasData: { maxFeePerGas: string; maxPriorityFeePerGas: string },
-    nonce: number
+    gasData: any
 ) => {
     const vaultContract = new ethers.Contract(vault, VAULT_INTERFACE, provider);
     const asset = await vaultContract.asset();
@@ -66,7 +65,7 @@ export const fulfillDeposit = async (
         gasLimit: gasLimit.toHexString(),
         maxFeePerGas: gasData.maxFeePerGas,
         maxPriorityFeePerGas: gasData.maxPriorityFeePerGas,
-        nonce: nonce,
+        nonce: gasData.nonce,
         chainId: chainId,
         type: 2,
     };
@@ -90,5 +89,5 @@ export const fulfillDeposit = async (
     console.log("signed fulfillDeposit tx:", signedTx);
     const txHash = await broadcastTransaction(provider, signedTx);
 
-    return `FulfillDeposit transaction hash: ${txHash}`;
+    return `Fulfill Deposit transaction hash: ${txHash}`;
 };

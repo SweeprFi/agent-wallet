@@ -5,7 +5,8 @@ import {
   NETWORK_CONFIG,
 } from '@lit-protocol/aw-tool';
 
-import { fulfillDeposit } from './utils/fulfill-deposit';
+import { getGasData } from './utils/get-gas-data';
+import { fulfillDeposit } from './utils/fulfiill-deposit';
 import { fulfillRedeem } from './utils/fulfill-redeem';
 import { takeAssets } from './utils/take-assets';
 import { returnAssets } from './utils/return-assets';
@@ -75,25 +76,21 @@ declare global {
       );
     }
 
-    // Add your tool execution logic here
-
     let response;
+    const gasData = await getGasData(provider, pkp.ethAddress);
 
     switch (params.action) {
       case 'fulfillDeposit':
-        response = await fulfillDeposit(provider, chainId, params.vault, params.controller, params.amount, pkp);
+        response = await fulfillDeposit(provider, chainId, params.vault, params.controller, params.amount, pkp, gasData);
         break;
       case 'fulfillRedeem':
-          response = await fulfillRedeem(provider, chainId, params.vault, params.controller, params.amount, pkp);
+          response = await fulfillRedeem(provider, chainId, params.vault, params.controller, params.amount, pkp, gasData);
         break;
       case 'takeAssets':
-        response = await takeAssets(provider, chainId, params.vault, params.controller, params.amount, pkp);
-        break;
-      case 'returnAssets':
-        response = await returnAssets(provider, chainId, params.vault, params.controller, params.amount, pkp);
+        response = await takeAssets(provider, chainId, params.vault, params.amount, pkp, gasData);
         break;
       default:
-        // response = await values(provider, chainId, params.controller, pkp);
+        response = await returnAssets(provider, chainId, params.vault, params.amount, pkp, gasData);
         break;
     }
 

@@ -1,6 +1,4 @@
-import { getGasData } from './get-gas-data';
 import { broadcastTransaction } from './broadcast-tx';
-import { getTokenInfo } from './get-erc20-info';
 
 const VAULT_INTERFACE = new ethers.utils.Interface([
     'function fulfillRedeem(address controller, uint256 amount) returns (bool)',
@@ -46,7 +44,8 @@ export const fulfillRedeem = async (
     vault: string,
     controller: string,
     amount: any,
-    pkp: any
+    pkp: any,
+    gasData: any
 ) => {
     console.log(`Creating and signing fulfillRedeem transaction...`);
     const vaultContract = new ethers.Contract(vault, VAULT_INTERFACE, provider);
@@ -55,7 +54,6 @@ export const fulfillRedeem = async (
 
     console.log(`Creating and signing fulfillRedeem transaction...`);
     const gasLimit = await estimateFulfillRedeemGasLimit(vaultContract, controller, parsedAmount, pkp);
-    const gasData = await getGasData(provider, pkp.ethAddress);
 
     const fulfillRedeemTx = {
         to: vault,
@@ -88,5 +86,5 @@ export const fulfillRedeem = async (
     console.log("signed fulfillRedeem tx:", signedTx);
     const txHash = await broadcastTransaction(provider, signedTx);
 
-    return `FulfillRedeem transaction hash: ${txHash}`;
+    return `Fulfill Redeem transaction hash: ${txHash}`;
 };

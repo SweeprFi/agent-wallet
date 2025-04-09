@@ -19,6 +19,9 @@
       "path": "../aw-tool-ipor-vault"
     },
     {
+      "path": "../aw-tool-erc7540-admin"
+    },
+    {
       "path": "../aw-tool-erc20-transfer"
     },
     {

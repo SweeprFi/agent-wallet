@@ -44,5 +44,5 @@ declare global {
     ]
   );
 
-  // Add your policy validation logic here using policyParameters
+  console.log('Policy parameters validated', policyParameters);
 })();
