@@ -7,6 +7,7 @@ import { JupiterSwap } from '@lit-protocol/aw-tool-jupiter-swap';
 import { Enso } from '@lit-protocol/aw-tool-enso';
 import { CctpUsdc } from '@lit-protocol/aw-tool-cctp-usdc';
 import { IporVault } from '@lit-protocol/aw-tool-ipor-vault';
+import { Erc7540Admin } from '@lit-protocol/aw-tool-erc7540-admin';
 
 /**
  * Represents the Lit network environment.
@@ -132,3 +133,4 @@ registerTool('JupiterSwap', JupiterSwap);
 registerTool('Enso', Enso);
 registerTool('CctpUsdc', CctpUsdc);
 registerTool('IporVault', IporVault);
+registerTool('Erc7540Admin', Erc7540Admin);

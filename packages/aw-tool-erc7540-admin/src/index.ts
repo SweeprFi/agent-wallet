@@ -1,0 +1,1 @@
+export { Erc7540Admin } from './lib/tool';

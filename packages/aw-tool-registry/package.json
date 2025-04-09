@@ -9,6 +9,7 @@
     "@lit-protocol/aw-tool-cctp-usdc": "workspace:*",
     "@lit-protocol/aw-tool-enso": "workspace:*",
     "@lit-protocol/aw-tool-erc20-transfer": "workspace:*",
+    "@lit-protocol/aw-tool-erc7540-admin": "workspace:*",
     "@lit-protocol/aw-tool-ipor-vault": "workspace:*",
     "@lit-protocol/aw-tool-jupiter-swap": "workspace:*",
     "@lit-protocol/aw-tool-sign-ecdsa": "workspace:*",

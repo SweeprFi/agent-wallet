@@ -50,6 +50,9 @@
     },
     {
       "path": "./packages/aw-tool-ipor-vault"
+    },
+    {
+      "path": "./packages/aw-tool-erc7540-admin"
     }
   ]
 }
