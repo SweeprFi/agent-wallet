@@ -16,6 +16,9 @@
       "path": "../aw-tool-jupiter-swap"
     },
     {
+      "path": "../aw-tool-ipor-vault"
+    },
+    {
       "path": "../aw-tool-erc20-transfer"
     },
     {

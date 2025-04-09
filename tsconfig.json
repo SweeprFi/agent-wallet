@@ -47,6 +47,9 @@
     },
     {
       "path": "./packages/aw-tool-cctp-usdc"
+    },
+    {
+      "path": "./packages/aw-tool-ipor-vault"
     }
   ]
 }

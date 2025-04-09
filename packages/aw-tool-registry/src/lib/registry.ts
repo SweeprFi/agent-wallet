@@ -6,6 +6,7 @@ import { SignEddsa } from '@lit-protocol/aw-tool-sign-eddsa';
 import { JupiterSwap } from '@lit-protocol/aw-tool-jupiter-swap';
 import { Enso } from '@lit-protocol/aw-tool-enso';
 import { CctpUsdc } from '@lit-protocol/aw-tool-cctp-usdc';
+import { IporVault } from '@lit-protocol/aw-tool-ipor-vault';
 
 /**
  * Represents the Lit network environment.
@@ -130,3 +131,4 @@ registerTool('SignEddsa', SignEddsa);
 registerTool('JupiterSwap', JupiterSwap);
 registerTool('Enso', Enso);
 registerTool('CctpUsdc', CctpUsdc);
+registerTool('IporVault', IporVault);
