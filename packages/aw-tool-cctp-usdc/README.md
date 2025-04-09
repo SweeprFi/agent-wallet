@@ -1,6 +1,6 @@
 # AW-Tool CctpUsdc Documentation
 
-The `aw-tool-cctp-usdc` package provides functionality for performing ECDSA signing operations using Lit Protocol's PKPs (Programmable Key Pairs). This tool enables secure signing of arbitrary messages or transactions while enforcing policy-based controls.
+The `aw-tool-cctp-usdc` package provides functionality for performing cross-chain USDC transfers using Circle's Cross-Chain Transfer Protocol (CCTP). This tool enables secure and efficient USDC transfers between supported networks while enforcing policy-based controls.
 
 ---
 
@@ -17,39 +17,43 @@ Handles IPFS CIDs for different environments (development, testing, production).
 ---
 
 ### 2. **`lit-action.ts`**
-Contains the main logic for executing a Lit Action to perform ECDSA signing operations.
+Contains the main logic for executing CCTP USDC transfers across different networks.
 
 #### Key Features:
 - **PKP Info Retrieval**: Fetches PKP details (token ID, Ethereum address, public key) from the PubkeyRouter contract
 - **Delegatee Validation**: Verifies that the session signer is a valid delegatee for the PKP
-- **Policy Enforcement**: Validates message prefixes against the allowed prefixes in the policy
-- **Message Signing**: Signs messages using the PKP's public key via Lit Actions
+- **Policy Enforcement**: Validates transfer amounts against the maximum allowed amount in the policy
+- **Cross-Chain Transfer**: Handles both sending (burn) and receiving (mint) USDC across chains
 - **Error Handling**: Comprehensive error handling and response formatting
 
 ---
 
 ### 3. **`policy.ts`**
-Defines and validates the ECDSA signing policy schema using Zod.
+Defines and validates the CCTP USDC transfer policy schema using Zod.
 
 #### Key Features:
 - **Policy Schema**: Validates policy fields:
-  - `type`: Must be 'SignEcdsa'
+  - `type`: Must be 'CctpUsdc'
   - `version`: Policy version string
-  - `allowedPrefixes`: Array of allowed message prefixes
+  - `maxAmount`: Maximum amount allowed for transfers
 - **Encoding/Decoding**: Converts policies to and from ABI-encoded strings using ethers
 - **Type Safety**: Uses Zod for schema validation and TypeScript type inference
 
 ---
 
 ### 4. **`tool.ts`**
-Configures the ECDSA signing tool for different Lit networks.
+Configures the CCTP USDC transfer tool for different Lit networks.
 
 #### Key Features:
 - **Parameter Schema**: Validates required parameters:
   - `pkpEthAddress`: The Ethereum address of the PKP
-  - `message`: The message to be signed
+  - `action`: The transfer action ('send' or 'receive')
+  - `opChainId`: The destination chain ID for sending or source chain ID for receiving
+  - `amount`: The amount of USDC to transfer
+  - `burnTx`: The burn transaction hash (required for receive action)
+  - `rpcUrl`: The RPC URL for the source chain
 - **Network Configuration**: Creates network-specific tools for each supported Lit network
 - **Tool Definition**: Implements the `AwTool` interface with:
   - Name and description
   - Parameter validation and descriptions
-  - Policy integration with `SignEcdsaPolicy`
+  - Policy integration with `CctpUsdcPolicy`
