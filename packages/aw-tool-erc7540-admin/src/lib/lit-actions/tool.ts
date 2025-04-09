@@ -10,6 +10,7 @@ import { fulfillDeposit } from './utils/fulfiill-deposit';
 import { fulfillRedeem } from './utils/fulfill-redeem';
 import { takeAssets } from './utils/take-assets';
 import { returnAssets } from './utils/return-assets';
+import { updateInvestedTotal } from './utils/update-invested-total';
 
 declare global {
   // Required Inputs
@@ -89,8 +90,11 @@ declare global {
       case 'takeAssets':
         response = await takeAssets(provider, chainId, params.vault, params.amount, pkp, gasData);
         break;
-      default:
+        case 'returnAssets':
         response = await returnAssets(provider, chainId, params.vault, params.amount, pkp, gasData);
+        break;
+      default:
+        response = await updateInvestedTotal(provider, chainId, params.vault, params.amount, pkp, gasData);
         break;
     }
 

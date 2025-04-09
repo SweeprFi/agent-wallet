@@ -2,7 +2,7 @@ import { broadcastTransaction } from './broadcast-tx';
 import { getTokenInfo } from './get-erc20-info';
 
 const VAULT_INTERFACE = new ethers.utils.Interface([
-    'function takeAssetsForInvestment(uint256 assets) external',
+    'function takeAssets(uint256 assets) external',
     'function asset() view returns (address)',
 ]);
 
@@ -20,7 +20,7 @@ const estimateTakeAssetGasLimit = async (
     console.log(`Estimating gas limit...`);
 
     try {
-        const estimatedGas = await vaultContract.estimateGas.takeAssetsForInvestment(amount, { from: pkpEthAddress });
+        const estimatedGas = await vaultContract.estimateGas.takeAssets(amount, { from: pkpEthAddress });
         console.log('Estimated gas limit:', estimatedGas.toString());
         return estimatedGas.mul(120).div(100);
     } catch (error) {
@@ -49,12 +49,12 @@ export const takeAssets = async (
     const asset = await vaultContract.asset();
     const tokenInfo = await getTokenInfo(provider, asset, amount, pkp.ethAddress);
 
-    console.log(`Creating and signing mint transaction...`);
+    console.log(`Creating and signing take asset transaction...`);
     const gasLimit = await estimateTakeAssetGasLimit(vaultContract, pkp.ethAddress, tokenInfo.amount);
 
     const takeAssetTx = {
         to: vault,
-        data: VAULT_INTERFACE.encodeFunctionData('takeAssetsForInvestment', [tokenInfo.amount]),
+        data: VAULT_INTERFACE.encodeFunctionData('takeAssets', [tokenInfo.amount]),
         value: '0x0',
         gasLimit: gasLimit.toHexString(),
         maxFeePerGas: gasData.maxFeePerGas,

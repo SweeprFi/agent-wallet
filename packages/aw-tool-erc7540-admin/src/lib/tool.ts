@@ -49,8 +49,8 @@ const Erc7540AdminLitActionSchema = z.object({
   action: z
     .string()
     .regex(
-      /^(fulfillDeposit|fulfillRedeem|takeAssets|returnAssets)$/,
-      'Must be one of the following values: fulfillDeposit, fulfillRedeem, takeAssets, returnAssets'
+      /^(fulfillDeposit|fulfillRedeem|takeAssets|returnAssets|updateInvested)$/,
+      'Must be one of the following values: fulfillDeposit, fulfillRedeem, takeAssets, returnAssets, updateInvested'
     ),
   vault: z
     .string()
