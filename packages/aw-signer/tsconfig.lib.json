@@ -29,10 +29,13 @@
       "path": "../aw-tool-enso/tsconfig.lib.json"
     },
     {
-      "path": "../aw-tool/tsconfig.lib.json"
+      "path": "../aw-tool-cctp-usdc/tsconfig.lib.json"
     },
     {
       "path": "../aw-tool-registry/tsconfig.lib.json"
+    },
+    {
+      "path": "../aw-tool/tsconfig.lib.json"
     },
     {
       "path": "../aw-contracts-sdk/tsconfig.lib.json"

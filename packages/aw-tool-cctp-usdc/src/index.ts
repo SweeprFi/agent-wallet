@@ -1,0 +1,1 @@
+export { CctpUsdc } from './lib/tool';

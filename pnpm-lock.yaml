@@ -272,6 +272,34 @@ importers:
         specifier: ^3.24.1
         version: 3.24.2
 
+  packages/aw-tool-cctp-usdc:
+    dependencies:
+      '@lit-protocol/aw-tool':
+        specifier: workspace:*
+        version: link:../aw-tool
+      axios:
+        specifier: ^1.8.4
+        version: 1.8.4
+      ethers:
+        specifier: ^5.7.2
+        version: 5.7.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      tslib:
+        specifier: ^2.8.1
+        version: 2.8.1
+      zod:
+        specifier: ^3.24.1
+        version: 3.24.2
+    devDependencies:
+      '@dotenvx/dotenvx':
+        specifier: ^1.31.3
+        version: 1.36.0
+      esbuild:
+        specifier: ^0.19.11
+        version: 0.19.12
+      node-fetch:
+        specifier: ^2.7.0
+        version: 2.7.0
+
   packages/aw-tool-enso:
     dependencies:
       '@ensofinance/sdk':
@@ -358,6 +386,9 @@ importers:
       '@lit-protocol/aw-tool':
         specifier: workspace:*
         version: link:../aw-tool
+      '@lit-protocol/aw-tool-cctp-usdc':
+        specifier: workspace:*
+        version: link:../aw-tool-cctp-usdc
       '@lit-protocol/aw-tool-enso':
         specifier: workspace:*
         version: link:../aw-tool-enso
@@ -2205,7 +2236,7 @@ packages:
 
   '@walletconnect/sign-client@2.9.2':
     resolution: {integrity: sha512-anRwnXKlR08lYllFMEarS01hp1gr6Q9XUgvacr749hoaC/AwGVlxYFdM8+MyYr3ozlA+2i599kjbK/mAebqdXg==}
-    deprecated: Reliability and performance greatly improved - please see https://github.com/WalletConnect/walletconnect-monorepo/releases
+    deprecated: 'Reliability and performance improvements. See: https://github.com/WalletConnect/walletconnect-monorepo/releases'
 
   '@walletconnect/time@1.0.2':
     resolution: {integrity: sha512-uzdd9woDcJ1AaBZRhqy5rNC9laqWGErfc4dxA9a87mPdKOgWMD85mcFo9dIYIts/Jwocfwn07EC6EzclKubk/g==}
@@ -2386,6 +2417,9 @@ packages:
 
   axios@1.7.9:
     resolution: {integrity: sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==}
+
+  axios@1.8.4:
+    resolution: {integrity: sha512-eBSYY4Y68NNlHbHBMdeDmKNtDgXWhQsJcGqzO3iLUM0GraQFSS9cVgPX5I9b3lbdFKyYoAEGAZF1DwhTaljNAw==}
 
   b4a@1.6.7:
     resolution: {integrity: sha512-OnAYlL5b7LEkALw87fUVafQw5rVR9RjwGd4KUwNQ6DrrNmaVaUCgLipfVlzrPQ4tWOR9P0IXGNOx50jYCCdSJg==}
@@ -8491,6 +8525,14 @@ snapshots:
   aws4@1.13.2: {}
 
   axios@1.7.9:
+    dependencies:
+      follow-redirects: 1.15.9
+      form-data: 4.0.2
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
+  axios@1.8.4:
     dependencies:
       follow-redirects: 1.15.9
       form-data: 4.0.2
